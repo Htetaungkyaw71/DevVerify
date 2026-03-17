@@ -8,6 +8,7 @@ import RecruiterDashboard from "./pages/RecruiterDashboard";
 import CandidateWorkspace from "./pages/CandidateWorkspace";
 import AIReportPage from "./pages/AIReportPage";
 import NotFound from "./pages/NotFound";
+import OAuthSuccess from "./pages/OauthSuccess";
 
 const queryClient = new QueryClient();
 
@@ -22,6 +23,7 @@ const App = () => (
           <Route path="/dashboard" element={<RecruiterDashboard />} />
           <Route path="/workspace" element={<CandidateWorkspace />} />
           <Route path="/report" element={<AIReportPage />} />
+          <Route path="/oauth-success" element={<OAuthSuccess />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
