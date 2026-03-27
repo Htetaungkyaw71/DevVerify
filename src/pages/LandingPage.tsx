@@ -1,29 +1,37 @@
 import {
-  ShieldCheck,
   Cpu,
   UserCheck,
   BarChart3,
-  Github,
   ArrowRight,
   Terminal,
-  Code2,
-  Zap,
-  Lock,
   ChevronRight,
+  ChevronDown,
+  LogOut,
+  ShieldCheck,
 } from "lucide-react";
 import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Surface } from "@/components/ui/Surface";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import api from "@/lib/api";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { logout } from "@/store/authSlice";
+import { persistor } from "@/store";
+import { authApi } from "@/store/authApi";
+import { challengesApi } from "@/store/challengesApi";
+import { positionsApi } from "@/store/positionsApi";
+import { submissionsApi } from "@/store/submissionsApi";
+import BrandLogo from "@/components/BrandLogo";
+import AppSettingsControls from "@/components/AppSettingsControls";
+import { useAppSettings } from "@/contexts/AppSettingsContext";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
-  visible: (i: number) => ({
+  visible: (index: number) => ({
     opacity: 1,
     y: 0,
     transition: {
-      delay: i * 0.1,
+      delay: index * 0.1,
       duration: 0.5,
       ease: [0.25, 0.1, 0.25, 1] as [number, number, number, number],
     },
@@ -62,15 +70,18 @@ const stats = [
 ];
 
 export default function LandingPage() {
+  const { t } = useAppSettings();
+  const dispatch = useAppDispatch();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [showUserMenu, setShowUserMenu] = useState(false);
+  const userMenuRef = useRef<HTMLDivElement | null>(null);
+  const navigate = useNavigate();
+  const token = useAppSelector((state) => state.auth.token);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
     const userData = localStorage.getItem("userData");
-    console.log(userData);
-
-    const user_exist = JSON.parse(userData);
+    const parsedUser = userData ? JSON.parse(userData) : null;
 
     if (!token) {
       setLoading(false);
@@ -79,85 +90,168 @@ export default function LandingPage() {
 
     const getUser = async () => {
       try {
-        const res = await api.get("/me");
-        setUser(res.data.user);
-        localStorage.setItem("userData", JSON.stringify(res.data.user));
-      } catch (err) {
-        console.error(err);
+        const response = await api.get("/me");
+        setUser(response.data.user);
+        localStorage.setItem("userData", JSON.stringify(response.data.user));
+      } catch (error) {
+        console.error(error);
       } finally {
         setLoading(false);
       }
     };
-    if (!user_exist) {
-      getUser();
-      setLoading(false);
+
+    if (!parsedUser) {
+      void getUser();
     } else {
-      setUser(user_exist);
+      setUser(parsedUser);
       setLoading(false);
     }
-  }, []);
-  console.log(user, "this is user");
+  }, [token]);
+
+  useEffect(() => {
+    if (!showUserMenu) {
+      return;
+    }
+
+    const onMouseDown = (event: MouseEvent) => {
+      const target = event.target as Node;
+      if (userMenuRef.current && !userMenuRef.current.contains(target)) {
+        setShowUserMenu(false);
+      }
+    };
+
+    window.addEventListener("mousedown", onMouseDown);
+    return () => {
+      window.removeEventListener("mousedown", onMouseDown);
+    };
+  }, [showUserMenu]);
+
+  const handleLogout = async () => {
+    dispatch(logout());
+    dispatch(authApi.util.resetApiState());
+    dispatch(challengesApi.util.resetApiState());
+    dispatch(positionsApi.util.resetApiState());
+    dispatch(submissionsApi.util.resetApiState());
+
+    await persistor.purge();
+    localStorage.removeItem("userData");
+    Object.keys(localStorage).forEach((key) => {
+      if (key.startsWith("devverify:draft:")) {
+        localStorage.removeItem(key);
+      }
+    });
+
+    setUser(null);
+    setShowUserMenu(false);
+    navigate("/");
+  };
+
   return (
     <div className="min-h-screen bg-background text-foreground">
-      {/* Nav */}
       <nav className="sticky top-0 z-50 border-b border-border/50 bg-background/80 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-6 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-primary rounded-md flex items-center justify-center glow-primary">
-              <ShieldCheck className="text-primary-foreground w-5 h-5" />
-            </div>
-            <span className="font-semibold text-foreground tracking-tight-custom">
-              Proof of Skill
-            </span>
-          </div>
+          <Link to="/" className="inline-flex items-center">
+            <BrandLogo compact textClassName="text-foreground" />
+          </Link>
           <div className="hidden md:flex items-center gap-8 text-sm text-muted-foreground">
-            <a
-              href="#features"
-              className="hover:text-foreground transition-colors"
-            >
-              Features
-            </a>
-            <a
-              href="#stats"
-              className="hover:text-foreground transition-colors"
-            >
-              Metrics
-            </a>
+            {user && (
+              <Link
+                to="/dashboard"
+                className="hover:text-foreground transition-colors"
+              >
+                {t("dashboard")}
+              </Link>
+            )}
+
             <Link
-              to="/dashboard"
+              to="/challenges"
               className="hover:text-foreground transition-colors"
             >
-              Dashboard
+              {t("challenges")}
             </Link>
           </div>
+
           <div className="flex items-center gap-3">
+            <AppSettingsControls />
             {loading ? null : user ? (
-              <div className="flex gap-2 items-center">
-                <img
-                  src={user?.avatar}
-                  width={40}
-                  height={40}
-                  className="rounded-full"
-                />
-                <h1>{user?.username}</h1>
+              <div className="relative" ref={userMenuRef}>
+                <button
+                  type="button"
+                  onClick={() => setShowUserMenu((prev) => !prev)}
+                  className="flex items-center gap-2 rounded-md px-2 py-1.5 ring-1 ring-border bg-secondary/50 hover:bg-accent transition-colors"
+                >
+                  {user?.avatar ? (
+                    <img
+                      src={user.avatar}
+                      width={32}
+                      height={32}
+                      className="rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-primary/15 text-primary text-xs font-semibold flex items-center justify-center">
+                      {String(user?.username || "U")
+                        .slice(0, 1)
+                        .toUpperCase()}
+                    </div>
+                  )}
+                  <div className="text-left leading-tight">
+                    <p className="text-sm text-foreground font-medium line-clamp-1 max-w-[120px]">
+                      {user?.username}
+                    </p>
+                  </div>
+                  <ChevronDown size={14} className="text-muted-foreground" />
+                </button>
+
+                {showUserMenu && (
+                  <div className="absolute right-0 mt-2 w-52 rounded-md border border-border bg-background/95 backdrop-blur p-1.5 shadow-lg z-50">
+                    <div className="px-2 py-1.5 border-b border-border/60 mb-1">
+                      <p className="text-sm font-medium text-foreground truncate">
+                        {user?.username}
+                      </p>
+                      <p className="text-xs text-muted-foreground truncate">
+                        {user?.email || t("signin")}
+                      </p>
+                    </div>
+                    <div className="md:hidden px-1 pb-1 border-b border-border/60 mb-1 space-y-0.5">
+                      <Link
+                        to="/dashboard"
+                        onClick={() => setShowUserMenu(false)}
+                        className="w-full text-left px-2 py-2 text-sm rounded hover:bg-accent text-foreground block"
+                      >
+                        {t("dashboard")}
+                      </Link>
+                      <Link
+                        to="/challenges"
+                        onClick={() => setShowUserMenu(false)}
+                        className="w-full text-left px-2 py-2 text-sm rounded hover:bg-accent text-foreground block"
+                      >
+                        {t("challenges")}
+                      </Link>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleLogout}
+                      className="w-full text-left px-3 py-2 text-sm rounded hover:bg-accent text-foreground inline-flex items-center gap-2"
+                    >
+                      <LogOut size={14} />
+                      {t("logout")}
+                    </button>
+                  </div>
+                )}
               </div>
             ) : (
-              <button
-                onClick={() => {
-                  window.location.href =
-                    "http://localhost:5001/api/auth/github";
-                }}
-                className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium bg-primary text-primary-foreground"
+              <Link
+                to="/auth"
+                className="flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium bg-primary text-primary-foreground"
               >
-                <Github size={16} />
-                Sign in with GitHub
-              </button>
+                {t("signin")}
+                <ArrowRight size={16} />
+              </Link>
             )}
           </div>
         </div>
       </nav>
 
-      {/* Hero */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[600px] rounded-full bg-primary/5 blur-[120px]" />
@@ -175,7 +269,7 @@ export default function LandingPage() {
               className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 ring-1 ring-primary/20 text-primary text-xs font-mono mb-8"
             >
               <ShieldCheck size={14} />
-              VERIFIED SKILLS PLATFORM
+              {t("verifiedPlatform")}
               <ChevronRight size={12} />
             </motion.div>
 
@@ -184,10 +278,10 @@ export default function LandingPage() {
               custom={1}
               className="text-5xl md:text-7xl font-bold tracking-tight-custom text-foreground leading-[1.05] mb-6"
             >
-              Hire engineers by{" "}
-              <span className="text-gradient-primary">proof,</span>
+              {t("heroTitle1")}{" "}
+              <span className="text-gradient-primary">{t("heroTitle2")}</span>
               <br />
-              not promises.
+              {t("heroTitle3")}
             </motion.h1>
 
             <motion.p
@@ -195,8 +289,7 @@ export default function LandingPage() {
               custom={2}
               className="text-lg text-muted-foreground max-w-xl mx-auto mb-10 leading-relaxed"
             >
-              AI-powered technical assessments that verify real coding ability.
-              No more whiteboard theatre.
+              {t("heroDesc")}
             </motion.p>
 
             <motion.div
@@ -205,24 +298,15 @@ export default function LandingPage() {
               className="flex flex-col sm:flex-row items-center justify-center gap-4"
             >
               <Link
-                to="/dashboard"
-                className="flex items-center gap-2 px-6 py-3 rounded-md text-sm font-medium bg-primary text-primary-foreground glow-primary hover:brightness-110 transition-all active:scale-[0.98]"
-              >
-                <Github size={18} />
-                Sign in with GitHub
-                <ArrowRight size={16} />
-              </Link>
-              <Link
-                to="/workspace"
+                to="/challenges"
                 className="flex items-center gap-2 px-6 py-3 rounded-md text-sm font-medium bg-secondary text-secondary-foreground ring-1 ring-border hover:bg-accent transition-all active:scale-[0.98]"
               >
                 <Terminal size={16} />
-                Try Demo Challenge
+                {t("tryDemo")}
               </Link>
             </motion.div>
           </motion.div>
 
-          {/* IDE Preview */}
           <motion.div
             variants={fadeUp}
             custom={4}
@@ -280,7 +364,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Features */}
       <section id="features" className="py-24 border-t border-border/30">
         <div className="max-w-7xl mx-auto px-6">
           <motion.div
@@ -306,11 +389,11 @@ export default function LandingPage() {
           </motion.div>
 
           <div className="grid md:grid-cols-3 gap-6">
-            {features.map((f, i) => (
+            {features.map((feature, index) => (
               <motion.div
-                key={f.title}
+                key={feature.title}
                 variants={fadeUp}
-                custom={i}
+                custom={index}
                 initial="hidden"
                 whileInView="visible"
                 viewport={{ once: true, margin: "-50px" }}
@@ -318,17 +401,17 @@ export default function LandingPage() {
                 <Surface className="p-6 h-full hover:ring-primary/20 transition-all duration-200 group">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center ring-1 ring-primary/20">
-                      <f.icon className="text-primary" size={20} />
+                      <feature.icon className="text-primary" size={20} />
                     </div>
                     <span className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest bg-muted px-2 py-0.5 rounded">
-                      {f.tag}
+                      {feature.tag}
                     </span>
                   </div>
                   <h3 className="text-lg font-semibold text-foreground mb-2">
-                    {f.title}
+                    {feature.title}
                   </h3>
                   <p className="text-sm text-muted-foreground leading-relaxed">
-                    {f.description}
+                    {feature.description}
                   </p>
                 </Surface>
               </motion.div>
@@ -337,25 +420,24 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Stats */}
       <section id="stats" className="py-20 border-t border-border/30">
         <div className="max-w-5xl mx-auto px-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {stats.map((s, i) => (
+            {stats.map((stat, index) => (
               <motion.div
-                key={s.label}
+                key={stat.label}
                 variants={fadeUp}
-                custom={i}
+                custom={index}
                 initial="hidden"
                 whileInView="visible"
                 viewport={{ once: true }}
                 className="text-center"
               >
                 <div className="text-3xl md:text-4xl font-bold text-foreground font-mono tabular-nums">
-                  {s.value}
+                  {stat.value}
                 </div>
                 <div className="text-xs text-muted-foreground font-mono uppercase tracking-wider mt-1">
-                  {s.label}
+                  {stat.label}
                 </div>
               </motion.div>
             ))}
@@ -363,23 +445,25 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Footer */}
       <footer className="border-t border-border/30 py-10">
         <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <ShieldCheck size={16} className="text-primary" />
-            <span className="font-mono text-xs">Proof of Skill © 2026</span>
+            <BrandLogo compact showText={false} className="gap-0" />
+            <span className="font-mono text-xs">DevVerify © 2026</span>
           </div>
           <div className="flex gap-6 text-xs text-muted-foreground font-mono">
-            <a href="#" className="hover:text-foreground transition-colors">
-              Privacy
-            </a>
-            <a href="#" className="hover:text-foreground transition-colors">
-              Terms
-            </a>
-            <a href="#" className="hover:text-foreground transition-colors">
-              Docs
-            </a>
+            <Link
+              to="/privacy"
+              className="hover:text-foreground transition-colors"
+            >
+              {t("privacy")}
+            </Link>
+            <Link
+              to="/privacy-terms"
+              className="hover:text-foreground transition-colors"
+            >
+              {t("privacyTerms")}
+            </Link>
           </div>
         </div>
       </footer>

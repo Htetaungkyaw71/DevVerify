@@ -1,79 +1,137 @@
-import { ShieldCheck, ArrowLeft, Download, ThumbsUp, ThumbsDown, AlertTriangle, CheckCircle2, Code2 } from "lucide-react";
+import {
+  ArrowLeft,
+  ThumbsUp,
+  ThumbsDown,
+  AlertTriangle,
+  CheckCircle2,
+  Code2,
+  ExternalLink,
+  Copy,
+} from "lucide-react";
 import { Surface } from "@/components/ui/Surface";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
+import BrandLogo from "@/components/BrandLogo";
+import { useEffect } from "react";
 
-const radarData = [
-  { skill: "Logic", score: 92 },
-  { skill: "Security", score: 78 },
-  { skill: "Readability", score: 85 },
-  { skill: "Performance", score: 70 },
-  { skill: "Cleanliness", score: 88 },
-];
+type SubmissionScores = {
+  logic: number;
+  security: number;
+  readability: number;
+  performance: number;
+  cleanliness: number;
+};
 
-const strengths = [
-  "Clean separation of concerns",
-  "Efficient use of Map for O(1) lookups",
-  "Proper TypeScript typing throughout",
-  "Edge cases handled gracefully",
-];
+type ReportSubmission = {
+  id: string;
+  name: string;
+  email: string;
+  challenge: string;
+  challengeId?: string;
+  score: number;
+  status: string;
+  report: string;
+  suggestions: string[];
+  strengths: string[];
+  weaknesses: string[];
+  submittedCode?: string;
+  createdAt?: string;
+  scoreBreakdown?: SubmissionScores;
+};
 
-const weaknesses = [
-  "Missing capacity validation in constructor",
-  "No error handling for negative keys",
-  "Could benefit from a doubly-linked list for O(1) eviction",
-];
-
-const codeAnnotations = [
-  { line: 5, type: "good", text: "Using Map preserves insertion order — smart choice for LRU." },
-  { line: 11, type: "warn", text: "Consider validating capacity > 0 to prevent runtime errors." },
-  { line: 16, type: "good", text: "Delete-and-reinsert pattern correctly updates access order." },
-];
-
-function RadarChart({ data }: { data: typeof radarData }) {
-  const size = 200;
+// ...existing code...
+function RadarChart({
+  data,
+}: {
+  data: Array<{ skill: string; score: number }>;
+}) {
+  const size = 220;
   const cx = size / 2;
   const cy = size / 2;
   const levels = 4;
   const angleStep = (2 * Math.PI) / data.length;
 
+  // add outer padding so long labels are not cut off
+  const viewBoxPadding = 28;
+
   const getPoint = (index: number, value: number) => {
     const angle = angleStep * index - Math.PI / 2;
-    const radius = (value / 100) * (size / 2 - 20);
-    return { x: cx + radius * Math.cos(angle), y: cy + radius * Math.sin(angle) };
+    const radius = (value / 100) * (size / 2 - 24);
+    return {
+      x: cx + radius * Math.cos(angle),
+      y: cy + radius * Math.sin(angle),
+    };
   };
 
-  const polygonPoints = data.map((d, i) => {
-    const p = getPoint(i, d.score);
-    return `${p.x},${p.y}`;
-  }).join(" ");
+  const polygonPoints = data
+    .map((d, i) => {
+      const p = getPoint(i, d.score);
+      return `${p.x},${p.y}`;
+    })
+    .join(" ");
 
   return (
-    <svg viewBox={`0 0 ${size} ${size}`} className="w-full max-w-[250px] mx-auto">
-      {/* Grid */}
+    <svg
+      viewBox={`${-viewBoxPadding} ${-viewBoxPadding} ${size + viewBoxPadding * 2} ${size + viewBoxPadding * 2}`}
+      className="w-full max-w-[280px] mx-auto"
+    >
       {Array.from({ length: levels }, (_, l) => {
-        const r = ((l + 1) / levels) * (size / 2 - 20);
-        const points = data.map((_, i) => {
-          const angle = angleStep * i - Math.PI / 2;
-          return `${cx + r * Math.cos(angle)},${cy + r * Math.sin(angle)}`;
-        }).join(" ");
-        return <polygon key={l} points={points} fill="none" stroke="hsl(var(--border))" strokeWidth="0.5" />;
+        const r = ((l + 1) / levels) * (size / 2 - 24);
+        const points = data
+          .map((_, i) => {
+            const angle = angleStep * i - Math.PI / 2;
+            return `${cx + r * Math.cos(angle)},${cy + r * Math.sin(angle)}`;
+          })
+          .join(" ");
+        return (
+          <polygon
+            key={l}
+            points={points}
+            fill="none"
+            stroke="hsl(var(--border))"
+            strokeWidth="0.7"
+          />
+        );
       })}
-      {/* Axes */}
+
       {data.map((_, i) => {
         const p = getPoint(i, 100);
-        return <line key={i} x1={cx} y1={cy} x2={p.x} y2={p.y} stroke="hsl(var(--border))" strokeWidth="0.5" />;
+        return (
+          <line
+            key={i}
+            x1={cx}
+            y1={cy}
+            x2={p.x}
+            y2={p.y}
+            stroke="hsl(var(--border))"
+            strokeWidth="0.7"
+          />
+        );
       })}
-      {/* Data polygon */}
-      <polygon points={polygonPoints} fill="hsl(var(--primary) / 0.15)" stroke="hsl(var(--primary))" strokeWidth="2" />
-      {/* Points & Labels */}
+
+      <polygon
+        points={polygonPoints}
+        fill="hsl(var(--primary) / 0.18)"
+        stroke="hsl(var(--primary))"
+        strokeWidth="2"
+      />
+
       {data.map((d, i) => {
         const p = getPoint(i, d.score);
-        const lp = getPoint(i, 115);
+        // slightly closer to chart center to reduce edge pressure
+        const lp = getPoint(i, 108);
         return (
           <g key={d.skill}>
             <circle cx={p.x} cy={p.y} r="3" fill="hsl(var(--primary))" />
-            <text x={lp.x} y={lp.y} textAnchor="middle" dominantBaseline="middle" className="fill-muted-foreground text-[9px] font-mono">
+            <text
+              x={lp.x}
+              y={lp.y}
+              textAnchor="middle"
+              dominantBaseline="middle"
+              className="fill-muted-foreground text-[10px] font-mono"
+            >
               {d.skill}
             </text>
           </g>
@@ -82,78 +140,184 @@ function RadarChart({ data }: { data: typeof radarData }) {
     </svg>
   );
 }
-
+// ...existing code...
 const fadeUp = {
-  hidden: { opacity: 0, y: 15 },
+  hidden: { opacity: 0, y: 12 },
   visible: (i: number) => ({
-    opacity: 1, y: 0,
-    transition: { delay: i * 0.08, duration: 0.4 },
+    opacity: 1,
+    y: 0,
+    transition: { delay: i * 0.08, duration: 0.35 },
   }),
 };
 
 export default function AIReportPage() {
-  const overallScore = Math.round(radarData.reduce((a, b) => a + b.score, 0) / radarData.length);
+  const location = useLocation();
+  const { toast } = useToast();
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }, [location.key]);
+
+  const submission = (
+    location.state as { submission?: ReportSubmission } | null
+  )?.submission;
+
+  if (!submission) {
+    return (
+      <div className="min-h-screen bg-background text-foreground p-6">
+        <Surface className="max-w-2xl mx-auto p-6 space-y-4">
+          <h1 className="text-xl font-semibold">No report selected</h1>
+          <p className="text-sm text-muted-foreground">
+            Open a submission report from the recruiter dashboard.
+          </p>
+          <Link
+            to="/dashboard"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-primary text-primary-foreground"
+          >
+            <ArrowLeft size={14} />
+            Back to Dashboard
+          </Link>
+        </Surface>
+      </div>
+    );
+  }
+
+  const scoreMap: SubmissionScores = submission.scoreBreakdown ?? {
+    logic: submission.score,
+    security: submission.score,
+    readability: submission.score,
+    performance: submission.score,
+    cleanliness: submission.score,
+  };
+
+  const radarData = [
+    { skill: "Logic", score: Number(scoreMap.logic ?? 0) },
+    { skill: "Security", score: Number(scoreMap.security ?? 0) },
+    { skill: "Readability", score: Number(scoreMap.readability ?? 0) },
+    { skill: "Performance", score: Number(scoreMap.performance ?? 0) },
+    { skill: "Cleanliness", score: Number(scoreMap.cleanliness ?? 0) },
+  ];
+
+  const overallScore = Math.round(
+    radarData.reduce((sum, item) => sum + item.score, 0) / radarData.length,
+  );
+
+  const copySubmittedCode = async () => {
+    const code = submission.submittedCode || "";
+    if (!code) {
+      toast({ title: "No code to copy", variant: "destructive" });
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(code);
+      toast({ title: "Code copied" });
+    } catch {
+      toast({ title: "Copy failed", variant: "destructive" });
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      {/* Header */}
       <header className="h-14 border-b border-border/50 px-6 flex items-center justify-between bg-background/80 backdrop-blur-xl sticky top-0 z-50">
         <div className="flex items-center gap-4">
-          <Link to="/dashboard" className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
+          <Link
+            to="/dashboard"
+            className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
+          >
             <ArrowLeft size={16} />
             <span className="text-sm hidden sm:inline">Back to Dashboard</span>
           </Link>
         </div>
         <div className="flex items-center gap-3">
           <span className="text-xs font-mono text-muted-foreground bg-muted px-2 py-0.5 rounded">
-            REPORT_ID: 0x4F2A
+            REPORT: {submission.id.slice(-6).toUpperCase()}
           </span>
-          <button className="flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium bg-secondary text-secondary-foreground ring-1 ring-border hover:bg-accent transition-all active:scale-[0.98]">
+          {/* <button className="flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium bg-secondary text-secondary-foreground ring-1 ring-border hover:bg-accent transition-all active:scale-[0.98]">
             <Download size={14} />
             Export PDF
-          </button>
+          </button> */}
         </div>
       </header>
 
       <main className="max-w-6xl mx-auto px-6 py-8 space-y-8">
-        {/* Overview */}
-        <motion.div initial="hidden" animate="visible" className="flex flex-col md:flex-row gap-6">
-          <motion.div variants={fadeUp} custom={0} className="flex-1">
+        <motion.div initial="hidden" animate="visible" className="">
+          <motion.div variants={fadeUp} custom={0} className="">
             <Surface className="p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center ring-1 ring-primary/20">
-                  <ShieldCheck className="text-primary" size={20} />
+              <div className="md:flex md:justify-between max-md:flex-col justify-between">
+                <div className="flex items-center gap-3 mb-4">
+                  {/* <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center ring-1 ring-primary/20"> */}
+                  <BrandLogo compact showText={false} className="gap-0" />
+                  {/* </div> */}
+                  <div>
+                    <h1 className="text-xl font-semibold text-foreground tracking-tight-custom">
+                      {submission.name}
+                    </h1>
+                    <p className="text-xs font-mono text-muted-foreground">
+                      {submission.email} ·{" "}
+                      {submission.createdAt
+                        ? new Date(submission.createdAt).toLocaleString()
+                        : "Recent"}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h1 className="text-xl font-semibold text-foreground tracking-tight-custom">Alex Rivera</h1>
-                  <p className="text-xs font-mono text-muted-foreground">Backend_Senior_v2 · Completed 2h 14m ago</p>
+
+                <div className="space-y-2">
+                  <p className="text-xs font-mono text-muted-foreground uppercase tracking-widest">
+                    Challenge
+                  </p>
+                  {submission.challengeId ? (
+                    <Link
+                      to={`/workspace/${submission.challengeId}`}
+                      className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
+                    >
+                      {submission.challenge}
+                      <ExternalLink size={14} />
+                    </Link>
+                  ) : (
+                    <p className="text-sm text-foreground">
+                      {submission.challenge}
+                    </p>
+                  )}
                 </div>
               </div>
+
               <div className="flex items-center gap-4 mt-6">
-                <div className="text-5xl font-bold font-mono tabular-nums text-foreground">{overallScore}</div>
+                <div className="text-5xl font-bold font-mono tabular-nums text-foreground">
+                  {overallScore}
+                </div>
                 <div className="text-sm text-muted-foreground">
                   <div>Overall Score</div>
-                  <div className="text-success text-xs font-mono mt-0.5">ABOVE AVERAGE (+12)</div>
+                  <div className="text-xs font-mono mt-0.5">
+                    Status: {submission.status}
+                  </div>
                 </div>
               </div>
             </Surface>
           </motion.div>
 
-          <motion.div variants={fadeUp} custom={1} className="flex-1">
+          {/* <motion.div variants={fadeUp} custom={1} className="flex-1">
             <Surface className="p-6 flex items-center justify-center h-full">
               <RadarChart data={radarData} />
             </Surface>
-          </motion.div>
+          </motion.div> */}
         </motion.div>
 
-        {/* Skill Breakdown */}
-        <motion.div variants={fadeUp} custom={2} initial="hidden" animate="visible">
+        <motion.div
+          variants={fadeUp}
+          custom={2}
+          initial="hidden"
+          animate="visible"
+        >
           <Surface className="p-6">
-            <h2 className="text-sm font-mono text-muted-foreground uppercase tracking-widest mb-4">Skill Breakdown</h2>
+            <h2 className="text-sm font-mono text-muted-foreground uppercase tracking-widest mb-4">
+              Skill Breakdown
+            </h2>
             <div className="space-y-3">
               {radarData.map((d) => (
                 <div key={d.skill} className="flex items-center gap-4">
-                  <span className="text-xs font-mono text-muted-foreground w-24">{d.skill}</span>
+                  <span className="text-xs font-mono text-muted-foreground w-24">
+                    {d.skill}
+                  </span>
                   <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
                     <motion.div
                       initial={{ width: 0 }}
@@ -162,117 +326,132 @@ export default function AIReportPage() {
                       className="h-full bg-primary rounded-full"
                     />
                   </div>
-                  <span className="text-xs font-mono text-foreground tabular-nums w-8 text-right">{d.score}</span>
+                  <span className="text-xs font-mono text-foreground tabular-nums w-8 text-right">
+                    {d.score}
+                  </span>
                 </div>
               ))}
             </div>
           </Surface>
         </motion.div>
 
-        {/* Strengths vs Weaknesses */}
         <div className="grid md:grid-cols-2 gap-6">
-          <motion.div variants={fadeUp} custom={3} initial="hidden" animate="visible">
+          <motion.div
+            variants={fadeUp}
+            custom={3}
+            initial="hidden"
+            animate="visible"
+          >
             <Surface className="p-6 h-full">
               <div className="flex items-center gap-2 mb-4">
                 <ThumbsUp size={16} className="text-success" />
-                <h2 className="text-sm font-mono text-success uppercase tracking-widest">Strengths</h2>
+                <h2 className="text-sm font-mono text-success uppercase tracking-widest">
+                  Strengths
+                </h2>
               </div>
               <ul className="space-y-3">
-                {strengths.map((s) => (
-                  <li key={s} className="flex items-start gap-3 text-sm text-muted-foreground">
-                    <CheckCircle2 size={16} className="text-success mt-0.5 flex-shrink-0" />
-                    {s}
+                {(submission.strengths || []).length > 0 ? (
+                  submission.strengths.map((s) => (
+                    <li
+                      key={s}
+                      className="flex items-start gap-3 text-sm text-muted-foreground"
+                    >
+                      <CheckCircle2
+                        size={16}
+                        className="text-success mt-0.5 flex-shrink-0"
+                      />
+                      {s}
+                    </li>
+                  ))
+                ) : (
+                  <li className="text-sm text-muted-foreground">
+                    No strengths provided.
                   </li>
-                ))}
+                )}
               </ul>
             </Surface>
           </motion.div>
 
-          <motion.div variants={fadeUp} custom={4} initial="hidden" animate="visible">
+          <motion.div
+            variants={fadeUp}
+            custom={4}
+            initial="hidden"
+            animate="visible"
+          >
             <Surface className="p-6 h-full">
               <div className="flex items-center gap-2 mb-4">
                 <ThumbsDown size={16} className="text-destructive" />
-                <h2 className="text-sm font-mono text-destructive uppercase tracking-widest">Weaknesses</h2>
+                <h2 className="text-sm font-mono text-destructive uppercase tracking-widest">
+                  Weaknesses
+                </h2>
               </div>
               <ul className="space-y-3">
-                {weaknesses.map((w) => (
-                  <li key={w} className="flex items-start gap-3 text-sm text-muted-foreground">
-                    <AlertTriangle size={16} className="text-destructive mt-0.5 flex-shrink-0" />
-                    {w}
+                {(submission.weaknesses || []).length > 0 ? (
+                  submission.weaknesses.map((w) => (
+                    <li
+                      key={w}
+                      className="flex items-start gap-3 text-sm text-muted-foreground"
+                    >
+                      <AlertTriangle
+                        size={16}
+                        className="text-destructive mt-0.5 flex-shrink-0"
+                      />
+                      {w}
+                    </li>
+                  ))
+                ) : (
+                  <li className="text-sm text-muted-foreground">
+                    No weaknesses provided.
                   </li>
-                ))}
+                )}
               </ul>
             </Surface>
           </motion.div>
         </div>
 
-        {/* Code Playback */}
-        <motion.div variants={fadeUp} custom={5} initial="hidden" animate="visible">
+        <motion.div
+          variants={fadeUp}
+          custom={5}
+          initial="hidden"
+          animate="visible"
+        >
+          <Surface className="p-6 space-y-3">
+            <h2 className="text-sm font-mono text-muted-foreground uppercase tracking-widest">
+              AI Report
+            </h2>
+            <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+              {submission.report || "No report available."}
+            </p>
+          </Surface>
+        </motion.div>
+
+        <motion.div
+          variants={fadeUp}
+          custom={6}
+          initial="hidden"
+          animate="visible"
+        >
           <Surface className="p-0 overflow-hidden">
-            <div className="p-6 border-b border-border/50 flex items-center gap-2">
-              <Code2 size={16} className="text-primary" />
-              <h2 className="text-sm font-mono text-muted-foreground uppercase tracking-widest">Code Playback — AI Annotations</h2>
+            <div className="p-6 border-b border-border/50 flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <Code2 size={16} className="text-primary" />
+                <h2 className="text-sm font-mono text-muted-foreground uppercase tracking-widest">
+                  Submitted Code
+                </h2>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2"
+                onClick={copySubmittedCode}
+              >
+                <Copy size={14} />
+                Copy
+              </Button>
             </div>
-            <div className="p-6 font-mono text-sm leading-loose overflow-x-auto">
-              {/* Line 1-4 */}
-              <div className="flex"><span className="w-8 text-right text-muted-foreground/40 text-xs mr-4 select-none leading-loose">1</span><span><span className="text-primary">class</span> <span className="text-yellow-300">LRUCache</span> {"{"}</span></div>
-              <div className="flex"><span className="w-8 text-right text-muted-foreground/40 text-xs mr-4 select-none leading-loose">2</span><span className="pl-4"><span className="text-primary">private</span> capacity: <span className="text-success">number</span>;</span></div>
-              <div className="flex"><span className="w-8 text-right text-muted-foreground/40 text-xs mr-4 select-none leading-loose">3</span><span className="pl-4"><span className="text-primary">private</span> cache: <span className="text-success">Map</span>{"<number, number>"};</span></div>
-              <div className="flex"><span className="w-8 text-right text-muted-foreground/40 text-xs mr-4 select-none leading-loose">4</span><span /></div>
-
-              {/* Line 5 with annotation */}
-              <div className="flex items-start bg-primary/5 -mx-6 px-6 py-1 border-l-2 border-primary">
-                <span className="w-8 text-right text-muted-foreground/40 text-xs mr-4 select-none leading-loose">5</span>
-                <div className="flex-1">
-                  <div className="pl-4"><span className="text-primary">constructor</span>(capacity: <span className="text-success">number</span>) {"{"}</div>
-                </div>
-              </div>
-              <div className="bg-primary/5 -mx-6 px-6 pb-2 border-l-2 border-primary">
-                <div className="ml-12 text-xs text-primary/80 flex items-center gap-1.5">
-                  <CheckCircle2 size={12} />
-                  {codeAnnotations[0].text}
-                </div>
-              </div>
-
-              <div className="flex"><span className="w-8 text-right text-muted-foreground/40 text-xs mr-4 select-none leading-loose">6</span><span className="pl-8"><span className="text-primary">this</span>.capacity = capacity;</span></div>
-              <div className="flex"><span className="w-8 text-right text-muted-foreground/40 text-xs mr-4 select-none leading-loose">7</span><span className="pl-8"><span className="text-primary">this</span>.cache = <span className="text-primary">new</span> <span className="text-success">Map</span>();</span></div>
-              <div className="flex"><span className="w-8 text-right text-muted-foreground/40 text-xs mr-4 select-none leading-loose">8</span><span className="pl-4">{"}"}</span></div>
-
-              {/* Line 11 with warning annotation */}
-              <div className="flex items-start bg-yellow-500/5 -mx-6 px-6 py-1 border-l-2 border-yellow-500">
-                <span className="w-8 text-right text-muted-foreground/40 text-xs mr-4 select-none leading-loose">11</span>
-                <div className="flex-1">
-                  <div className="pl-4"><span className="text-primary">get</span>(key: <span className="text-success">number</span>): <span className="text-success">number</span> {"{"}</div>
-                </div>
-              </div>
-              <div className="bg-yellow-500/5 -mx-6 px-6 pb-2 border-l-2 border-yellow-500">
-                <div className="ml-12 text-xs text-yellow-400/80 flex items-center gap-1.5">
-                  <AlertTriangle size={12} />
-                  {codeAnnotations[1].text}
-                </div>
-              </div>
-
-              <div className="flex"><span className="w-8 text-right text-muted-foreground/40 text-xs mr-4 select-none leading-loose">12</span><span className="pl-8"><span className="text-primary">if</span> (!<span className="text-primary">this</span>.cache.has(key)) <span className="text-primary">return</span> <span className="text-destructive">-1</span>;</span></div>
-
-              {/* Line 16 with good annotation */}
-              <div className="flex items-start bg-success/5 -mx-6 px-6 py-1 border-l-2 border-success">
-                <span className="w-8 text-right text-muted-foreground/40 text-xs mr-4 select-none leading-loose">16</span>
-                <div className="flex-1">
-                  <div className="pl-8"><span className="text-primary">this</span>.cache.delete(key);</div>
-                </div>
-              </div>
-              <div className="bg-success/5 -mx-6 px-6 pb-2 border-l-2 border-success">
-                <div className="ml-12 text-xs text-success/80 flex items-center gap-1.5">
-                  <CheckCircle2 size={12} />
-                  {codeAnnotations[2].text}
-                </div>
-              </div>
-
-              <div className="flex"><span className="w-8 text-right text-muted-foreground/40 text-xs mr-4 select-none leading-loose">17</span><span className="pl-8"><span className="text-primary">this</span>.cache.set(key, val);</span></div>
-              <div className="flex"><span className="w-8 text-right text-muted-foreground/40 text-xs mr-4 select-none leading-loose">18</span><span className="pl-8"><span className="text-primary">return</span> val;</span></div>
-              <div className="flex"><span className="w-8 text-right text-muted-foreground/40 text-xs mr-4 select-none leading-loose">19</span><span className="pl-4">{"}"}</span></div>
-              <div className="flex"><span className="w-8 text-right text-muted-foreground/40 text-xs mr-4 select-none leading-loose">20</span><span>{"}"}</span></div>
-            </div>
+            <pre className="p-6 font-mono text-sm leading-relaxed overflow-x-auto whitespace-pre-wrap text-foreground">
+              {submission.submittedCode || "No submitted code available."}
+            </pre>
           </Surface>
         </motion.div>
       </main>
