@@ -1,19 +1,38 @@
- 
+# OS
 .DS_*
+
+# Logs
 *.log
 logs
+
+# Backups
 **/*.backup.*
 **/*.back.*
 
-node_modules
-bower_components
-.env
+# Dependencies
+node_modules/
+bower_components/
 
+# Build outputs
+dist/
+build/
+
+# Caches
+.vite/
+.cache/
+coverage/
+
+# Env
+.env
+.env.*
+!.env.example
+
+# Editor files
 *.sublime*
 
+# Assets / misc
 psd
 thumb
 sketch
-
 
 # End of https://mrkandreev.name/snippets/gitignore-generator/#react,vite
