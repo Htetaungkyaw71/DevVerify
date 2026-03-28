@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { Surface } from "@/components/ui/Surface";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useGetChallengesQuery, useGetTagsQuery } from "@/store/challengesApi";
 import BrandLogo from "@/components/BrandLogo";
 
@@ -71,9 +72,11 @@ export default function ChallengesPage() {
           <div className="mt-4">
             <div className="flex flex-wrap items-center gap-2">
               {tagsLoading ? (
-                <span className="text-xs text-muted-foreground">
-                  Loading tags...
-                </span>
+                <>
+                  {Array.from({ length: 8 }).map((_, i) => (
+                    <Skeleton key={i} className="h-7 w-24" />
+                  ))}
+                </>
               ) : (
                 visibleTags.map((tag) => {
                   const active = selectedTag === tag.name;
@@ -106,7 +109,7 @@ export default function ChallengesPage() {
 
           <div className="mt-3 flex items-center justify-between gap-3">
             <p className="text-xs text-muted-foreground font-mono">
-              {isFetching ? "Updating..." : `Total: ${data?.total ?? 0}`}
+              {isFetching ? "" : `Total: ${data?.total ?? 0}`}
             </p>
 
             <div className="flex items-center gap-2 text-xs font-mono">
@@ -191,14 +194,30 @@ export default function ChallengesPage() {
               </thead>
               <tbody className="divide-y divide-border/30">
                 {isLoading ? (
-                  <tr>
-                    <td
-                      colSpan={4}
-                      className="p-6 text-sm text-muted-foreground"
-                    >
-                      Loading challenges...
-                    </td>
-                  </tr>
+                  <>
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <tr
+                        key={i}
+                        className="hover:bg-accent/30 transition-colors"
+                      >
+                        <td className="p-4 sm:p-6">
+                          <div className="space-y-2">
+                            <Skeleton className="h-5 w-48" />
+                            <Skeleton className="h-3 w-32" />
+                          </div>
+                        </td>
+                        <td className="p-4 sm:p-6">
+                          <Skeleton className="h-5 w-16" />
+                        </td>
+                        <td className="p-4 sm:p-6 hidden md:table-cell">
+                          <Skeleton className="h-5 w-24" />
+                        </td>
+                        <td className="p-4 sm:p-6 hidden lg:table-cell">
+                          <Skeleton className="h-5 w-40" />
+                        </td>
+                      </tr>
+                    ))}
+                  </>
                 ) : isError ? (
                   <tr>
                     <td colSpan={4} className="p-6 text-sm text-destructive">

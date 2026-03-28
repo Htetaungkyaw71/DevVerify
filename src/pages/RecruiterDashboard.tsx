@@ -30,6 +30,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Dialog,
@@ -701,8 +702,16 @@ export default function RecruiterDashboard() {
               </div>
               <div className="max-h-72 overflow-y-auto rounded-md border border-border divide-y divide-border">
                 {challengesLoading ? (
-                  <div className="p-3 text-sm text-muted-foreground">
-                    Loading challenges...
+                  <div className="space-y-3 p-3">
+                    {Array.from({ length: 6 }).map((_, i) => (
+                      <div key={i} className="flex items-center gap-3">
+                        <Skeleton className="h-4 w-4" />
+                        <div className="flex-1 space-y-1.5">
+                          <Skeleton className="h-4 w-3/4" />
+                          <Skeleton className="h-3 w-1/2" />
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 ) : availableChallenges.length === 0 ? (
                   <div className="p-3 text-sm text-muted-foreground">

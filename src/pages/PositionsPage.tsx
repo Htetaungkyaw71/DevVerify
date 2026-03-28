@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Dialog,
   DialogContent,
@@ -354,9 +355,29 @@ export default function PositionsPage() {
     <div className="min-h-screen bg-background text-foreground">
       <main className="max-w-5xl mx-auto px-6 py-8 space-y-4">
         {positionsLoading ? (
-          <Surface className="p-6 text-sm text-muted-foreground">
-            Loading positions...
-          </Surface>
+          <div className="space-y-3">
+            <div>
+              <h2 className="text-lg font-semibold text-foreground">
+                Positions
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                Click a position to open details.
+              </p>
+            </div>
+            {[1, 2, 3].map((i) => (
+              <Surface key={i} className="p-5 space-y-3">
+                <Skeleton className="h-6 w-3/4" />
+                <div className="flex gap-2">
+                  <Skeleton className="h-5 w-20" />
+                  <Skeleton className="h-5 w-24" />
+                </div>
+                <div className="flex gap-2">
+                  <Skeleton className="h-4 w-16" />
+                  <Skeleton className="h-4 w-14" />
+                </div>
+              </Surface>
+            ))}
+          </div>
         ) : positionsError ? (
           <Surface className="p-6 text-sm text-destructive">
             Failed to load positions.

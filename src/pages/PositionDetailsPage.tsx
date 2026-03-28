@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Dialog,
   DialogContent,
@@ -298,9 +299,22 @@ export default function PositionDetailsPage() {
         </div>
 
         {isLoading ? (
-          <Surface className="p-6 text-sm text-muted-foreground">
-            Loading position...
-          </Surface>
+          <>
+            <Surface className="p-5 space-y-4">
+              <div className="space-y-2">
+                <Skeleton className="h-5 w-20" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+              <div className="space-y-2">
+                <Skeleton className="h-5 w-32" />
+                <Skeleton className="h-20 w-full" />
+              </div>
+              <div className="space-y-2">
+                <Skeleton className="h-5 w-24" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+            </Surface>
+          </>
         ) : isError || !data?.position ? (
           <Surface className="p-6 text-sm text-destructive">
             Position not found.

@@ -20,6 +20,7 @@ import Lottie from "lottie-react";
 import DOMPurify from "dompurify";
 import { Surface } from "@/components/ui/Surface";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useGetChallengeByIdQuery } from "@/store/challengesApi";
 import { useCreateSubmissionMutation } from "@/store/submissionsApi";
 import api, { onlineCompilerApi } from "@/lib/api";
@@ -684,18 +685,43 @@ export default function CandidateWorkspace() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background text-foreground p-6">
-        <Surface className="p-6 text-muted-foreground h-[90dvh] flex items-center justify-center gap-3">
-          <span className="inline-flex items-center text-lg font-mono leading-none">
-            <span className="inline-block animate-bounce">{"{"}</span>
-            <span
-              className="inline-block animate-bounce"
-              style={{ animationDelay: "120ms" }}
-            >
-              {"}"}
-            </span>
-          </span>
-          <span>Loading challenge...</span>
-        </Surface>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 h-[90dvh]">
+          {/* Left Panel Skeleton */}
+          <Surface className="p-6 space-y-4 overflow-hidden">
+            <div className="space-y-2">
+              <Skeleton className="h-6 w-full" />
+              <Skeleton className="h-4 w-3/4" />
+            </div>
+            <div className="space-y-2">
+              <Skeleton className="h-40 w-full" />
+            </div>
+            <div className="space-y-2">
+              <Skeleton className="h-6 w-24" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-2/3" />
+            </div>
+          </Surface>
+
+          {/* Editor Panel Skeleton */}
+          <div className="lg:col-span-2 flex flex-col gap-4">
+            <Surface className="p-4 flex-1">
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <Skeleton className="h-5 w-24" />
+                  <Skeleton className="h-5 w-32" />
+                </div>
+                <Skeleton className="h-full w-full min-h-96" />
+              </div>
+            </Surface>
+            <Surface className="p-4 h-32">
+              <div className="space-y-2">
+                <Skeleton className="h-5 w-20" />
+                <Skeleton className="h-4 w-full" />
+              </div>
+            </Surface>
+          </div>
+        </div>
       </div>
     );
   }
@@ -879,16 +905,15 @@ export default function CandidateWorkspace() {
               value={currentCode}
               onChange={(value) => setCurrentCode(value ?? "")}
               loading={
-                <div className="h-full w-full flex items-center justify-center gap-3 text-muted-foreground bg-card/40">
-                  <span className="inline-flex items-center text-lg font-mono leading-none">
-                    <span className="inline-block animate-bounce">{"{"}</span>
-                    <span
-                      className="inline-block animate-bounce"
-                      style={{ animationDelay: "120ms" }}
-                    >
-                      {"}"}
-                    </span>
-                  </span>
+                <div className="h-full w-full p-4 bg-card/40 space-y-2">
+                  {Array.from({ length: 12 }).map((_, i) => (
+                    <Skeleton
+                      key={i}
+                      className={`h-5 ${
+                        i % 3 === 0 ? "w-3/4" : i % 3 === 1 ? "w-full" : "w-2/3"
+                      }`}
+                    />
+                  ))}
                 </div>
               }
               theme={theme === "light" ? "vs" : "vs-dark"}
