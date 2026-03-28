@@ -941,7 +941,7 @@ export default function CandidateWorkspace() {
                     )}
                   </div>
 
-                  <div className="flex items-center gap-3 pb-1 overflow-x-auto no-scrollbar">
+                  <div className="flex items-center gap-3 pb-1 ">
                     {parsedTests.map((test, index) => {
                       const isActive = index === selectedTestIndex;
 

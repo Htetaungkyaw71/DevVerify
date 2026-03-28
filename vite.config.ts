@@ -35,5 +35,27 @@ export default defineConfig(({ mode }) => {
         "@": path.resolve(__dirname, "./src"),
       },
     },
+    build: {
+      outDir: "dist",
+      minify: "terser",
+      terserOptions: {
+        compress: {
+          drop_console: true,
+          drop_debugger: true,
+        },
+      },
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            react: ["react", "react-dom"],
+            router: ["react-router-dom"],
+            redux: ["redux", "@reduxjs/toolkit", "react-redux"],
+            ui: ["@radix-ui/react-dialog", "@radix-ui/react-dropdown-menu"],
+          },
+        },
+      },
+      reportCompressedSize: false,
+      chunkSizeWarningLimit: 500,
+    },
   };
 });

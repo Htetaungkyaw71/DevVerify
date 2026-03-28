@@ -1,3 +1,5 @@
+Sitemap: https://devverify.com/sitemap.xml
+
 User-agent: Googlebot
 Allow: /
 
@@ -12,3 +14,12 @@ Allow: /
 
 User-agent: *
 Allow: /
+Disallow: /api/
+Disallow: /admin/
+Disallow: /*.json$
+
+# Allow crawling of important paths
+Allow: /challenges
+Allow: /workspace
+Allow: /report
+Allow: /auth

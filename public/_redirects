@@ -1,0 +1,8 @@
+/* Single Page App Routing */
+/*    /index.html   200
+
+/* Cache static assets */
+/dist/*    200
+
+/* Redirect non-www to www */
+https://devverify.online/*  https://www.devverify.online/:splat  301

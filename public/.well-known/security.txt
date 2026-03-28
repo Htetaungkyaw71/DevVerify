@@ -1,0 +1,3 @@
+Contact: security@devverify.com
+Expires: 2027-03-28T00:00:00Z
+Preferred-Languages: en
