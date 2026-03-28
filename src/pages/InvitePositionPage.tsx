@@ -68,7 +68,7 @@ export default function InvitePositionPage() {
   const { token = "" } = useParams<{ token: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const authToken = useAppSelector((state) => state.auth.token);
+  const authUser = useAppSelector((state) => state.auth.user);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -76,7 +76,7 @@ export default function InvitePositionPage() {
 
   const { data: submissionsData } = useGetPositionSubmissionsQuery(
     { positionId: position?.id || "" },
-    { skip: !position?.id || !authToken },
+    { skip: !position?.id || !authUser },
   );
 
   const submittedChallengeIds = useMemo(() => {
@@ -149,7 +149,7 @@ export default function InvitePositionPage() {
     const inviteToken = position?.inviteToken || token;
     const target = `/workspace/${challenge.id}?invite=1&inviteToken=${inviteToken}&positionId=${position?.id}&timeLimit=${challenge.timeLimit}`;
 
-    if (!authToken) {
+    if (!authUser) {
       navigate("/auth", { state: { redirectTo: target } });
       return;
     }

@@ -7,10 +7,15 @@ type ProtectedRouteProps = {
 };
 
 export default function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const token = useAppSelector((state) => state.auth.token);
+  const user = useAppSelector((state) => state.auth.user);
+  const initialized = useAppSelector((state) => state.auth.initialized);
   const location = useLocation();
 
-  if (!token) {
+  if (!initialized) {
+    return null;
+  }
+
+  if (!user) {
     return (
       <Navigate
         to="/auth"

@@ -199,7 +199,7 @@ export default function CandidateWorkspace() {
   const { toast } = useToast();
   const { theme } = useAppSettings();
   const isMobile = useIsMobile();
-  const authToken = useAppSelector((state) => state.auth.token);
+  const authUser = useAppSelector((state) => state.auth.user);
   const { id } = useParams<{ id: string }>();
 
   const isInviteMode = searchParams.get("invite") === "1";
@@ -269,7 +269,6 @@ export default function CandidateWorkspace() {
     (e: React.TouchEvent) => {
       const touch = e.touches[0];
       if (!touch) return;
-      e.preventDefault();
       beginDrag(touch.clientY);
     },
     [beginDrag],
@@ -332,7 +331,6 @@ export default function CandidateWorkspace() {
       if (!isDragging.current) return;
       const touch = e.touches[0];
       if (!touch) return;
-      e.preventDefault();
       const delta = dragStartY.current - touch.clientY;
       setOutputHeight(
         Math.max(
@@ -378,10 +376,10 @@ export default function CandidateWorkspace() {
   }, [id, isInviteMode, inviteTimeLimitMinutes]);
 
   useEffect(() => {
-    if (!id || !isInviteMode || authToken) return;
+    if (!id || !isInviteMode || authUser) return;
     const redirectTo = `/workspace/${id}?${inviteQueryString}`;
     navigate("/auth", { replace: true, state: { redirectTo } });
-  }, [authToken, id, inviteQueryString, isInviteMode, navigate]);
+  }, [authUser, id, inviteQueryString, isInviteMode, navigate]);
 
   useEffect(() => {
     if (countdown === null) return;
@@ -523,6 +521,8 @@ export default function CandidateWorkspace() {
         code: codeToRun,
       });
 
+      console.log(codeToRun);
+
       const result = res.data?.data ?? res.data;
       const output = result?.output ?? "";
       const error = result?.error ?? "";
@@ -532,6 +532,8 @@ export default function CandidateWorkspace() {
       const totalTime = result?.total ?? "";
       const memory = result?.memory ?? "";
       const status = result?.status ?? "";
+
+      console.log("result", result);
 
       const tests = parseTestResults(output);
       setParsedTests(tests);
@@ -709,7 +711,7 @@ export default function CandidateWorkspace() {
   }
 
   return (
-    <div className="h-screen flex flex-col bg-background text-foreground overflow-hidden">
+    <div className="h-[100dvh] flex flex-col bg-background text-foreground overflow-hidden">
       <header className="h-14 border-b border-border/50 px-4 sm:px-6 flex items-center justify-between bg-background/80 backdrop-blur-xl flex-shrink-0">
         <div className="flex items-center gap-3">
           <Link to="/" className="inline-flex items-center">
@@ -939,7 +941,7 @@ export default function CandidateWorkspace() {
                     )}
                   </div>
 
-                  <div className="flex items-center gap-3 pb-1">
+                  <div className="flex items-center gap-3 pb-1 overflow-x-auto no-scrollbar">
                     {parsedTests.map((test, index) => {
                       const isActive = index === selectedTestIndex;
 
@@ -983,7 +985,7 @@ export default function CandidateWorkspace() {
                   )}
 
                   {!!output && (
-                    <details className="text-xs">
+                    <details className="text-sm">
                       <summary className="cursor-pointer text-muted-foreground">
                         Raw output
                       </summary>

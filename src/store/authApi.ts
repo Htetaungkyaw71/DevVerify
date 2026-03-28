@@ -1,6 +1,5 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { setCredentials } from "./authSlice";
-import type { RootState } from "./index.js";
 import { API_BASE_URL } from "@/lib/apiConfig";
 
 interface LoginRequest {
@@ -16,7 +15,6 @@ interface RegisterRequest {
 }
 
 interface AuthPayload {
-  token: string;
   user?: Record<string, unknown> | null;
 }
 
@@ -41,14 +39,8 @@ interface ResetPasswordRequest {
 
 const normalizeAuthResponse = (response: any): AuthPayload => {
   const payload = response?.data ?? response;
-  const token = payload?.token ?? payload?.accessToken ?? payload?.jwt;
-
-  if (!token) {
-    throw new Error("Authentication token not found in server response.");
-  }
 
   return {
-    token,
     user: payload?.user,
   };
 };
@@ -57,13 +49,7 @@ export const authApi = createApi({
   reducerPath: "authApi",
   baseQuery: fetchBaseQuery({
     baseUrl: API_BASE_URL,
-    prepareHeaders: (headers, { getState }) => {
-      const token = (getState() as RootState).auth.token;
-      if (token) {
-        headers.set("authorization", `Bearer ${token}`);
-      }
-      return headers;
-    },
+    credentials: "include",
   }),
   endpoints: (builder) => ({
     login: builder.mutation<AuthPayload, LoginRequest>({
@@ -76,6 +62,7 @@ export const authApi = createApi({
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         const { data } = await queryFulfilled;
         dispatch(setCredentials(data));
+        sessionStorage.setItem("devverify:has_session", "true");
       },
     }),
     register: builder.mutation<AuthPayload, RegisterRequest>({
@@ -88,6 +75,7 @@ export const authApi = createApi({
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         const { data } = await queryFulfilled;
         dispatch(setCredentials(data));
+        sessionStorage.setItem("devverify:has_session", "true");
       },
     }),
     sendRegisterOtp: builder.mutation<

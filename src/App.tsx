@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { useEffect } from "react";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -20,13 +21,60 @@ import PrivacyPage from "./pages/PrivacyPage";
 import PrivacyTermsPage from "./pages/PrivacyTermsPage";
 import { AppSettingsProvider } from "./contexts/AppSettingsContext";
 import ProtectedRoute from "./components/ProtectedRoute";
+import api from "@/lib/api";
+import { useAppDispatch } from "./store/hooks";
+import { setAuthInitialized, setCredentials } from "./store/authSlice";
 
 const queryClient = new QueryClient();
+
+function AuthBootstrap() {
+  const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const bootstrap = async () => {
+      const hasSessionFlag = sessionStorage.getItem("devverify:has_session");
+
+      if (!hasSessionFlag) {
+        if (!cancelled) {
+          dispatch(setAuthInitialized(true));
+        }
+        return;
+      }
+
+      try {
+        const response = await api.get("/me");
+        if (!cancelled) {
+          dispatch(setCredentials({ user: response.data?.user ?? null }));
+        }
+      } catch (err: any) {
+        if (!cancelled) {
+          dispatch(setCredentials({ user: null }));
+          sessionStorage.removeItem("devverify:has_session");
+        }
+      } finally {
+        if (!cancelled) {
+          dispatch(setAuthInitialized(true));
+        }
+      }
+    };
+
+    void bootstrap();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [dispatch]);
+
+  return null;
+}
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AppSettingsProvider>
       <TooltipProvider>
+        <AuthBootstrap />
         <Toaster />
         <Sonner />
         <BrowserRouter>

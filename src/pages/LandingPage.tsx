@@ -16,7 +16,6 @@ import { useEffect, useRef, useState } from "react";
 import api from "@/lib/api";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { logout } from "@/store/authSlice";
-import { persistor } from "@/store";
 import { authApi } from "@/store/authApi";
 import { challengesApi } from "@/store/challengesApi";
 import { positionsApi } from "@/store/positionsApi";
@@ -77,36 +76,24 @@ export default function LandingPage() {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const userMenuRef = useRef<HTMLDivElement | null>(null);
   const navigate = useNavigate();
-  const token = useAppSelector((state) => state.auth.token);
+  const authUser = useAppSelector((state) => state.auth.user);
+  const authInitialized = useAppSelector((state) => state.auth.initialized);
 
   useEffect(() => {
-    const userData = localStorage.getItem("userData");
-    const parsedUser = userData ? JSON.parse(userData) : null;
+    if (!authInitialized) {
+      setLoading(true);
+      return;
+    }
 
-    if (!token) {
+    if (authUser) {
+      setUser(authUser);
       setLoading(false);
       return;
     }
 
-    const getUser = async () => {
-      try {
-        const response = await api.get("/me");
-        setUser(response.data.user);
-        localStorage.setItem("userData", JSON.stringify(response.data.user));
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (!parsedUser) {
-      void getUser();
-    } else {
-      setUser(parsedUser);
-      setLoading(false);
-    }
-  }, [token]);
+    setUser(null);
+    setLoading(false);
+  }, [authInitialized, authUser]);
 
   useEffect(() => {
     if (!showUserMenu) {
@@ -127,14 +114,18 @@ export default function LandingPage() {
   }, [showUserMenu]);
 
   const handleLogout = async () => {
+    try {
+      await api.post("/logout");
+    } catch {}
+
     dispatch(logout());
     dispatch(authApi.util.resetApiState());
     dispatch(challengesApi.util.resetApiState());
     dispatch(positionsApi.util.resetApiState());
     dispatch(submissionsApi.util.resetApiState());
 
-    await persistor.purge();
-    localStorage.removeItem("userData");
+    sessionStorage.removeItem("devverify:has_session");
+
     Object.keys(localStorage).forEach((key) => {
       if (key.startsWith("devverify:draft:")) {
         localStorage.removeItem(key);
