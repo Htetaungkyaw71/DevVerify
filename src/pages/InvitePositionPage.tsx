@@ -66,7 +66,6 @@ const normalizeInvitePosition = (raw: any): InvitePosition | null => {
 
 export default function InvitePositionPage() {
   const { token = "" } = useParams<{ token: string }>();
-  console.log(token);
   const navigate = useNavigate();
   const { toast } = useToast();
   const authToken = useAppSelector((state) => state.auth.token);
