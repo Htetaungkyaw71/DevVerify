@@ -523,8 +523,7 @@ export default function CandidateWorkspace() {
         code: codeToRun,
       });
 
-      const result = res.data;
-      console.log(result);
+      const result = res.data?.data ?? res.data;
       const output = result?.output ?? "";
       const error = result?.error ?? "";
       const exitCode = result?.exit_code ?? "";
@@ -568,9 +567,11 @@ export default function CandidateWorkspace() {
       );
     } catch (error) {
       const message =
-        error instanceof Error
+        (error as { response?: { data?: { message?: string } } })?.response
+          ?.data?.message ||
+        (error instanceof Error
           ? error.message
-          : "Failed to run code. Please try again.";
+          : "Failed to run code. Please try again.");
       setOutput(message);
       setParsedTests([]);
       setSelectedTestIndex(0);
