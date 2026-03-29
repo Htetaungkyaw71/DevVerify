@@ -3,15 +3,18 @@ import { Briefcase, ChevronLeft, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import type { Position } from "@/store/positionsApi";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type PositionListProps = {
   positions: Position[];
   submissionsCountByPosition: Record<string, number>;
+  isLoading?: boolean;
 };
 
 export default function PositionList({
   positions,
   submissionsCountByPosition,
+  isLoading = false,
 }: PositionListProps) {
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
@@ -27,6 +30,30 @@ export default function PositionList({
     const start = (page - 1) * perPage;
     return positions.slice(start, start + perPage);
   }, [page, positions]);
+
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+          {Array.from({ length: perPage }).map((_, index) => (
+            <div
+              key={index}
+              className="rounded-lg border border-border p-4 space-y-3"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="space-y-2 w-full">
+                  <Skeleton className="h-5 w-3/4" />
+                  <Skeleton className="h-4 w-1/2" />
+                </div>
+                <Skeleton className="h-4 w-20" />
+              </div>
+              <Skeleton className="h-6 w-16" />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   if (positions.length === 0) {
     return (

@@ -25,6 +25,7 @@ export default function MainNavbar() {
   const authInitialized = useAppSelector((state) => state.auth.initialized);
   const showLegalLinks =
     location.pathname === "/" ||
+    location.pathname === "/about" ||
     location.pathname === "/privacy" ||
     location.pathname === "/privacy-terms";
   const username =
@@ -108,6 +109,45 @@ export default function MainNavbar() {
           >
             {t("challenges")}
           </NavLink>
+          <NavLink
+            to="/about"
+            end
+            className={({ isActive }) =>
+              `transition-colors hover:text-foreground ${
+                isActive ? "text-foreground" : "text-muted-foreground"
+              }`
+            }
+          >
+            {" "}
+            About
+          </NavLink>
+
+          {/* {showLegalLinks && (
+            <>
+              <NavLink
+                to="/privacy"
+                end
+                className={({ isActive }) =>
+                  `transition-colors hover:text-foreground ${
+                    isActive ? "text-foreground" : "text-muted-foreground"
+                  }`
+                }
+              >
+                {t("privacy")}
+              </NavLink>
+              <NavLink
+                to="/privacy-terms"
+                end
+                className={({ isActive }) =>
+                  `transition-colors hover:text-foreground ${
+                    isActive ? "text-foreground" : "text-muted-foreground"
+                  }`
+                }
+              >
+                {t("privacyTerms")}
+              </NavLink>
+            </>
+          )} */}
         </div>
 
         <div className="flex items-center gap-3">

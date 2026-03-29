@@ -19,6 +19,7 @@ import InvitePositionPage from "./pages/InvitePositionPage";
 import RecruiterDashboard from "./pages/RecruiterDashboard";
 import PrivacyPage from "./pages/PrivacyPage";
 import PrivacyTermsPage from "./pages/PrivacyTermsPage";
+import AboutPage from "./pages/AboutPage";
 import { AppSettingsProvider } from "./contexts/AppSettingsContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import api from "@/lib/api";
@@ -104,6 +105,7 @@ const App = () => (
             <Route path="/workspace" element={<CandidateWorkspace />} />
             <Route path="/workspace/:id" element={<CandidateWorkspace />} />
             <Route path="/report" element={<AIReportPage />} />
+            <Route path="/about" element={<AboutPage />} />
             <Route path="/privacy" element={<PrivacyPage />} />
             <Route path="/privacy-terms" element={<PrivacyTermsPage />} />
             <Route

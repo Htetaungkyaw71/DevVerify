@@ -266,6 +266,12 @@ export default function LandingPage() {
           </div>
           <div className="flex gap-6 text-xs text-muted-foreground font-mono">
             <Link
+              to="/about"
+              className="hover:text-foreground transition-colors"
+            >
+              About
+            </Link>
+            <Link
               to="/privacy"
               className="hover:text-foreground transition-colors"
             >

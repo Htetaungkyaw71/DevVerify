@@ -86,7 +86,8 @@ export default function RecruiterDashboard() {
   const [submissionsPage, setSubmissionsPage] = useState(1);
   const [submissionsLimit, setSubmissionsLimit] = useState(20);
 
-  const { data: positionsData } = useGetMyPositionsQuery();
+  const { data: positionsData, isLoading: positionsLoading } =
+    useGetMyPositionsQuery();
   const [createPosition, { isLoading: creating }] = useCreatePositionMutation();
 
   useEffect(() => {
@@ -166,7 +167,11 @@ export default function RecruiterDashboard() {
     setSubmissionsPage(1);
   }, [firstPositionId, submissionsLimit]);
 
-  const { data: submissionsData } = useGetPositionSubmissionsQuery(
+  const {
+    data: submissionsData,
+    isLoading: submissionsLoading,
+    isFetching: submissionsFetching,
+  } = useGetPositionSubmissionsQuery(
     {
       positionId: firstPositionId,
       page: submissionsPage,
@@ -180,6 +185,7 @@ export default function RecruiterDashboard() {
     submissionsData?.pagination?.totalPages ?? 1,
   );
   const submissionsTotal = submissionsData?.pagination?.total ?? 0;
+  const submissionsListLoading = submissionsLoading || submissionsFetching;
 
   const selectedCount = useMemo(
     () => Object.keys(selectedChallenges).length,
@@ -478,6 +484,7 @@ export default function RecruiterDashboard() {
               <PositionList
                 positions={positions}
                 submissionsCountByPosition={submissionsCountByPosition}
+                isLoading={positionsLoading}
               />
             </Surface>
           </TabsContent>
@@ -519,7 +526,27 @@ export default function RecruiterDashboard() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border/30">
-                    {campaigns.length > 0 ? (
+                    {submissionsListLoading ? (
+                      Array.from({ length: 3 }).map((_, index) => (
+                        <tr key={`submission-skeleton-${index}`}>
+                          <td className="p-4 sm:p-6">
+                            <div className="space-y-2">
+                              <Skeleton className="h-4 w-32" />
+                              <Skeleton className="h-3 w-44" />
+                            </div>
+                          </td>
+                          <td className="p-4 sm:p-6 hidden sm:table-cell">
+                            <Skeleton className="h-4 w-40" />
+                          </td>
+                          <td className="p-4 sm:p-6">
+                            <Skeleton className="h-6 w-20" />
+                          </td>
+                          <td className="p-4 sm:p-6 text-right max-md:hidden">
+                            <Skeleton className="h-4 w-24 ml-auto" />
+                          </td>
+                        </tr>
+                      ))
+                    ) : campaigns.length > 0 ? (
                       campaigns.map((c) => (
                         <tr
                           key={c.id}

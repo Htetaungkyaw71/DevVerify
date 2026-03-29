@@ -1,0 +1,29 @@
+<svg width="1200" height="700" viewBox="0 0 1200 700" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="700" fill="#0B1020"/>
+  <rect x="40" y="40" width="1120" height="620" rx="20" fill="#121933" stroke="#2A3768"/>
+  <text x="80" y="95" fill="#E8EEFF" font-size="34" font-family="Inter, Arial, sans-serif" font-weight="700">Recruiter Journey</text>
+  <text x="80" y="130" fill="#9FB2E3" font-size="18" font-family="Inter, Arial, sans-serif">Create position → Share invite → Review reports</text>
+
+  <rect x="80" y="170" width="300" height="420" rx="16" fill="#1A2448" stroke="#3E4F87"/>
+  <text x="105" y="220" fill="#E8EEFF" font-size="22" font-family="Inter, Arial, sans-serif" font-weight="600">1. Dashboard</text>
+  <text x="105" y="265" fill="#C8D6FF" font-size="16" font-family="Inter, Arial, sans-serif">- Sign in as recruiter</text>
+  <text x="105" y="295" fill="#C8D6FF" font-size="16" font-family="Inter, Arial, sans-serif">- Click Create Position</text>
+  <text x="105" y="325" fill="#C8D6FF" font-size="16" font-family="Inter, Arial, sans-serif">- Add title + challenges</text>
+
+  <rect x="450" y="170" width="300" height="420" rx="16" fill="#1A2448" stroke="#3E4F87"/>
+  <text x="475" y="220" fill="#E8EEFF" font-size="22" font-family="Inter, Arial, sans-serif" font-weight="600">2. Invite Link</text>
+  <text x="475" y="265" fill="#C8D6FF" font-size="16" font-family="Inter, Arial, sans-serif">- Open position details</text>
+  <text x="475" y="295" fill="#C8D6FF" font-size="16" font-family="Inter, Arial, sans-serif">- Copy invite URL</text>
+  <text x="475" y="325" fill="#C8D6FF" font-size="16" font-family="Inter, Arial, sans-serif">- Send to candidate</text>
+
+  <rect x="820" y="170" width="300" height="420" rx="16" fill="#1A2448" stroke="#3E4F87"/>
+  <text x="845" y="220" fill="#E8EEFF" font-size="22" font-family="Inter, Arial, sans-serif" font-weight="600">3. Evaluate</text>
+  <text x="845" y="265" fill="#C8D6FF" font-size="16" font-family="Inter, Arial, sans-serif">- Track submissions</text>
+  <text x="845" y="295" fill="#C8D6FF" font-size="16" font-family="Inter, Arial, sans-serif">- Open AI report</text>
+  <text x="845" y="325" fill="#C8D6FF" font-size="16" font-family="Inter, Arial, sans-serif">- Compare candidate quality</text>
+
+  <path d="M390 380H440" stroke="#6E86D6" stroke-width="5" stroke-linecap="round"/>
+  <path d="M760 380H810" stroke="#6E86D6" stroke-width="5" stroke-linecap="round"/>
+  <path d="M430 365L450 380L430 395" fill="none" stroke="#6E86D6" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M800 365L820 380L800 395" fill="none" stroke="#6E86D6" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

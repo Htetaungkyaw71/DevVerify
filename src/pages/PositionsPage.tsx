@@ -51,6 +51,7 @@ export default function PositionsPage() {
   const {
     data: positionsData,
     isLoading: positionsLoading,
+    isFetching: positionsFetching,
     isError: positionsError,
   } = useGetMyPositionsQuery();
   const positions = positionsData?.positions ?? [];
