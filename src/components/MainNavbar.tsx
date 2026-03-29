@@ -16,24 +16,35 @@ export default function MainNavbar() {
   const { t } = useAppSettings();
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const location = useLocation();
 
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [hasSessionHint, setHasSessionHint] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return localStorage.getItem("devverify:has_session") === "true";
+  });
   const userMenuRef = useRef<HTMLDivElement | null>(null);
 
   const authUser = useAppSelector((state) => state.auth.user);
   const authInitialized = useAppSelector((state) => state.auth.initialized);
-  const showLegalLinks =
-    location.pathname === "/" ||
-    location.pathname === "/about" ||
-    location.pathname === "/privacy" ||
-    location.pathname === "/privacy-terms";
+
   const username =
     authUser && typeof authUser.username === "string" ? authUser.username : "U";
   const email =
     authUser && typeof authUser.email === "string" ? authUser.email : "";
   const avatar =
     authUser && typeof authUser.avatar === "string" ? authUser.avatar : "";
+  const showAuthedShell = authUser || (!authInitialized && hasSessionHint);
+
+  useEffect(() => {
+    if (authUser) {
+      setHasSessionHint(true);
+      return;
+    }
+
+    if (authInitialized) {
+      setHasSessionHint(false);
+    }
+  }, [authInitialized, authUser]);
 
   useEffect(() => {
     if (!showUserMenu) {
@@ -65,6 +76,7 @@ export default function MainNavbar() {
     dispatch(submissionsApi.util.resetApiState());
 
     localStorage.removeItem("devverify:has_session");
+    setHasSessionHint(false);
 
     Object.keys(localStorage).forEach((key) => {
       if (key.startsWith("devverify:draft:")) {
@@ -84,7 +96,7 @@ export default function MainNavbar() {
         </Link>
 
         <div className="hidden md:flex items-center gap-8 text-sm text-muted-foreground">
-          {authUser && (
+          {showAuthedShell ? (
             <NavLink
               to="/dashboard"
               end
@@ -96,7 +108,7 @@ export default function MainNavbar() {
             >
               {t("dashboard")}
             </NavLink>
-          )}
+          ) : null}
 
           <NavLink
             to="/challenges"
@@ -118,42 +130,17 @@ export default function MainNavbar() {
               }`
             }
           >
-            {" "}
             About
           </NavLink>
-
-          {/* {showLegalLinks && (
-            <>
-              <NavLink
-                to="/privacy"
-                end
-                className={({ isActive }) =>
-                  `transition-colors hover:text-foreground ${
-                    isActive ? "text-foreground" : "text-muted-foreground"
-                  }`
-                }
-              >
-                {t("privacy")}
-              </NavLink>
-              <NavLink
-                to="/privacy-terms"
-                end
-                className={({ isActive }) =>
-                  `transition-colors hover:text-foreground ${
-                    isActive ? "text-foreground" : "text-muted-foreground"
-                  }`
-                }
-              >
-                {t("privacyTerms")}
-              </NavLink>
-            </>
-          )} */}
         </div>
 
         <div className="flex items-center gap-3">
           <AppSettingsControls />
 
-          {!authInitialized ? null : authUser ? (
+          {!authInitialized && hasSessionHint ? (
+            <></>
+          ) : // <div className="h-11 w-[100px] rounded-md ring-1 ring-border bg-secondary/40 animate-pulse" />
+          !authInitialized ? null : authUser ? (
             <div className="relative" ref={userMenuRef}>
               <button
                 type="button"

@@ -973,7 +973,7 @@ export default function CandidateWorkspace() {
               onChange={(value) => setCurrentCode(value ?? "")}
               loading={
                 <div className="h-full w-full p-4 bg-card/40 space-y-2">
-                  {Array.from({ length: 12 }).map((_, i) => (
+                  {Array.from({ length: 6 }).map((_, i) => (
                     <Skeleton
                       key={i}
                       className={`h-5 ${
