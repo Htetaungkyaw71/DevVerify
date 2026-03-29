@@ -1,4 +1,4 @@
-Sitemap: https://devverify.com/sitemap.xml
+Sitemap: https://www.devverify.online/sitemap.xml
 
 User-agent: Googlebot
 Allow: /
