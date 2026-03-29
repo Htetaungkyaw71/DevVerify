@@ -15,7 +15,7 @@ import {
   X,
   XCircle,
 } from "lucide-react";
-import Editor from "@monaco-editor/react";
+import Editor, { loader } from "@monaco-editor/react";
 import Lottie from "lottie-react";
 import DOMPurify from "dompurify";
 import { Surface } from "@/components/ui/Surface";
@@ -40,6 +40,12 @@ import { useAppSettings } from "@/contexts/AppSettingsContext";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { getErrorMessage } from "@/lib/errorUtils";
 import AppSettingsControls from "@/components/AppSettingsControls";
+
+loader.config({
+  paths: {
+    vs: "/monaco/vs",
+  },
+});
 
 const languageOptions = [
   "javascript",
