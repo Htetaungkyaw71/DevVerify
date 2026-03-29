@@ -1,16 +1,10 @@
-import { Link } from "react-router-dom";
 import { Surface } from "@/components/ui/Surface";
-import BrandLogo from "@/components/BrandLogo";
+import MainNavbar from "@/components/MainNavbar";
 
 export default function PrivacyPage() {
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <header className="h-14 border-b border-border/50 px-6 flex items-center justify-between bg-background/80 backdrop-blur-xl sticky top-0 z-50">
-        <Link to="/" className="inline-flex items-center">
-          <BrandLogo compact textClassName="text-foreground" />
-        </Link>
-        <span className="text-xs font-mono text-muted-foreground">PRIVACY</span>
-      </header>
+      <MainNavbar />
 
       <main className="max-w-4xl mx-auto px-6 py-8">
         <Surface className="p-6 space-y-6">

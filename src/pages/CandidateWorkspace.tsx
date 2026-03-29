@@ -22,7 +22,10 @@ import { Surface } from "@/components/ui/Surface";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useGetChallengeByIdQuery } from "@/store/challengesApi";
-import { useCreateSubmissionMutation } from "@/store/submissionsApi";
+import {
+  useCreateSubmissionMutation,
+  useGetPositionSubmissionsQuery,
+} from "@/store/submissionsApi";
 import api, { onlineCompilerApi } from "@/lib/api";
 import { useAppSelector } from "@/store/hooks";
 import { useToast } from "@/hooks/use-toast";
@@ -36,6 +39,7 @@ import BrandLogo from "@/components/BrandLogo";
 import { useAppSettings } from "@/contexts/AppSettingsContext";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { getErrorMessage } from "@/lib/errorUtils";
+import AppSettingsControls from "@/components/AppSettingsControls";
 
 const languageOptions = [
   "javascript",
@@ -245,6 +249,35 @@ export default function CandidateWorkspace() {
   const hasAutoSubmittedRef = useRef(false);
 
   const [createSubmission] = useCreateSubmissionMutation();
+  const {
+    data: positionSubmissionsData,
+    isLoading: positionSubmissionsLoading,
+    isFetching: positionSubmissionsFetching,
+  } = useGetPositionSubmissionsQuery(
+    { positionId: positionIdFromQuery },
+    { skip: !isInviteMode || !authUser || !positionIdFromQuery },
+  );
+
+  const alreadySubmittedChallengeIds = useMemo(
+    () =>
+      new Set(
+        (positionSubmissionsData?.submissions || []).map((submission) => {
+          if (typeof submission.challengeId === "string") {
+            return submission.challengeId;
+          }
+          return submission.challengeId?._id || "";
+        }),
+      ),
+    [positionSubmissionsData],
+  );
+
+  const alreadySolvedInviteChallenge =
+    !!id &&
+    isInviteMode &&
+    !!authUser &&
+    alreadySubmittedChallengeIds.has(id) &&
+    !positionSubmissionsLoading &&
+    !positionSubmissionsFetching;
   const minOutputHeight = isMobile ? 140 : 80;
   const maxOutputHeight = isMobile ? 320 : 600;
 
@@ -383,6 +416,15 @@ export default function CandidateWorkspace() {
   }, [authUser, id, inviteQueryString, isInviteMode, navigate]);
 
   useEffect(() => {
+    if (!alreadySolvedInviteChallenge) return;
+
+    const invitePath = inviteTokenFromQuery
+      ? `/invite/${inviteTokenFromQuery}`
+      : "/";
+    navigate(invitePath, { replace: true });
+  }, [alreadySolvedInviteChallenge, inviteTokenFromQuery, navigate]);
+
+  useEffect(() => {
     if (countdown === null) return;
     if (countdown === 0) {
       setCountdown(null);
@@ -481,10 +523,19 @@ export default function CandidateWorkspace() {
   const isNearTimeout =
     isInviteMode && challengeStarted && !hasSubmitted && timeLeftSeconds <= 60;
 
-  const backPath =
-    isInviteMode && inviteTokenFromQuery
-      ? `/invite/${inviteTokenFromQuery}`
-      : "/challenges";
+  const handleBack = () => {
+    if (isInviteMode && inviteTokenFromQuery) {
+      navigate(`/invite/${inviteTokenFromQuery}`);
+      return;
+    }
+
+    if (window.history.length > 1) {
+      navigate(-1);
+      return;
+    }
+
+    navigate("/");
+  };
 
   const startInviteChallenge = () => {
     if (!isInviteMode || countdown !== null) return;
@@ -726,6 +777,20 @@ export default function CandidateWorkspace() {
     );
   }
 
+  if (
+    isInviteMode &&
+    authUser &&
+    (positionSubmissionsLoading || positionSubmissionsFetching)
+  ) {
+    return (
+      <div className="min-h-screen bg-background text-foreground p-6">
+        <Surface className="p-6 text-sm text-muted-foreground">
+          Checking challenge status...
+        </Surface>
+      </div>
+    );
+  }
+
   if (isError || !challenge) {
     return (
       <div className="min-h-screen bg-background text-foreground p-6">
@@ -743,13 +808,14 @@ export default function CandidateWorkspace() {
           <Link to="/" className="inline-flex items-center">
             <BrandLogo compact showText={false} className="gap-0" />
           </Link>
-          <Link
-            to={backPath}
+          <button
+            type="button"
+            onClick={handleBack}
             className="text-sm text-muted-foreground hover:text-foreground inline-flex items-center gap-1"
           >
             <ArrowLeft size={14} />
             {isInviteMode ? "Back" : "Back"}
-          </Link>
+          </button>
         </div>
         {isInviteMode && (
           <Button
@@ -765,6 +831,7 @@ export default function CandidateWorkspace() {
         )}
 
         <div className="flex items-center gap-2">
+          <AppSettingsControls />
           {isInviteMode && (
             <div
               className={`hidden sm:flex items-center gap-1 px-2.5 py-1 rounded-md text-sm font-mono ring-1 ${

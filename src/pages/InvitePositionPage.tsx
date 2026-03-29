@@ -74,10 +74,17 @@ export default function InvitePositionPage() {
   const [error, setError] = useState("");
   const [position, setPosition] = useState<InvitePosition | null>(null);
 
-  const { data: submissionsData } = useGetPositionSubmissionsQuery(
+  const {
+    data: submissionsData,
+    isLoading: submissionsLoading,
+    isFetching: submissionsFetching,
+  } = useGetPositionSubmissionsQuery(
     { positionId: position?.id || "" },
     { skip: !position?.id || !authUser },
   );
+
+  const submissionsReady =
+    !authUser || !position?.id || (!submissionsLoading && !submissionsFetching);
 
   const submittedChallengeIds = useMemo(() => {
     return new Set(
@@ -94,6 +101,7 @@ export default function InvitePositionPage() {
   }, [submissionsData]);
 
   const allChallengesCompleted =
+    submissionsReady &&
     position &&
     position.challenges.length > 0 &&
     position.challenges.every((ch) => submittedChallengeIds.has(ch.id));
@@ -204,67 +212,73 @@ export default function InvitePositionPage() {
             <h2 className="text-base font-semibold text-foreground">
               Coding Challenges
             </h2>
-            {allChallengesCompleted && (
+            {submissionsReady && allChallengesCompleted && (
               <span className="text-sm font-medium text-green-500 flex items-center gap-1">
                 <CheckCircle size={16} />
                 All completed!
               </span>
             )}
           </div>
-          {allChallengesCompleted && (
+          {submissionsReady && allChallengesCompleted && (
             <p className="text-sm text-muted-foreground bg-green-500/10 border border-green-500/30 rounded-md p-3">
               🎉 Congratulations! You have successfully completed all
               challenges.
             </p>
           )}
-          <div className="space-y-2">
-            {position.challenges.map((challenge) => {
-              const isSubmitted = submittedChallengeIds.has(challenge.id);
-              return (
-                <button
-                  key={challenge.id}
-                  onClick={() => openChallenge(challenge)}
-                  disabled={isSubmitted}
-                  className={`w-full text-left p-4 rounded-md border transition-colors ${
-                    isSubmitted
-                      ? "border-border/50 bg-muted/40 cursor-not-allowed opacity-60"
-                      : "border-border hover:bg-accent/30 cursor-pointer"
-                  }`}
-                >
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                    <div>
-                      <p className="font-medium text-foreground">
-                        {challenge.title}
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {[challenge.difficulty, challenge.category]
-                          .filter(Boolean)
-                          .join(" • ") || "Coding challenge"}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      {isSubmitted ? (
-                        <span className="inline-flex items-center gap-1 text-sm text-green-500 font-medium">
-                          <CheckCircle size={14} />
-                          Completed
-                        </span>
-                      ) : (
-                        <>
-                          <span className="inline-flex items-center gap-1 text-sm text-muted-foreground">
-                            <Clock3 size={14} />
-                            {challenge.timeLimit} min
+          {!submissionsReady ? (
+            <p className="text-sm text-muted-foreground">
+              Updating challenge status...
+            </p>
+          ) : (
+            <div className="space-y-2">
+              {position.challenges.map((challenge) => {
+                const isSubmitted = submittedChallengeIds.has(challenge.id);
+                return (
+                  <button
+                    key={challenge.id}
+                    onClick={() => openChallenge(challenge)}
+                    disabled={isSubmitted}
+                    className={`w-full text-left p-4 rounded-md border transition-colors ${
+                      isSubmitted
+                        ? "border-border/50 bg-muted/40 cursor-not-allowed opacity-60"
+                        : "border-border hover:bg-accent/30 cursor-pointer"
+                    }`}
+                  >
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                      <div>
+                        <p className="font-medium text-foreground">
+                          {challenge.title}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {[challenge.difficulty, challenge.category]
+                            .filter(Boolean)
+                            .join(" • ") || "Coding challenge"}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        {isSubmitted ? (
+                          <span className="inline-flex items-center gap-1 text-sm text-green-500 font-medium">
+                            <CheckCircle size={14} />
+                            Completed
                           </span>
-                          <span className="inline-flex items-center gap-1 text-primary text-sm font-medium">
-                            Start <ArrowRight size={14} />
-                          </span>
-                        </>
-                      )}
+                        ) : (
+                          <>
+                            <span className="inline-flex items-center gap-1 text-sm text-muted-foreground">
+                              <Clock3 size={14} />
+                              {challenge.timeLimit} min
+                            </span>
+                            <span className="inline-flex items-center gap-1 text-primary text-sm font-medium">
+                              Start <ArrowRight size={14} />
+                            </span>
+                          </>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </Surface>
       </main>
     </div>

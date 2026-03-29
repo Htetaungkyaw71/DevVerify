@@ -15,7 +15,7 @@ import { Surface } from "@/components/ui/Surface";
 import { Link, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import PositionList from "@/components/PositionList";
-import BrandLogo from "@/components/BrandLogo";
+import MainNavbar from "@/components/MainNavbar";
 import { useGetChallengesQuery } from "@/store/challengesApi";
 import {
   useCreatePositionMutation,
@@ -386,17 +386,10 @@ export default function RecruiterDashboard() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <header className="h-14 border-b border-border/50 px-6 flex items-center justify-between bg-background/80 backdrop-blur-xl sticky top-0 z-50">
-        <div className="flex items-center gap-3">
-          <Link to="/" className="inline-flex items-center">
-            <BrandLogo compact textClassName="text-foreground" />
-          </Link>
-          <span className="text-xs max-md:hidden font-mono text-muted-foreground bg-muted px-2 py-0.5 rounded">
-            RECRUITER
-          </span>
-        </div>
-        <div className="flex items-center gap-3">
-          <div className="relative hidden md:block"></div>
+      <MainNavbar />
+
+      <main className="max-w-7xl mx-auto px-6 py-8 space-y-8">
+        <div className="flex justify-end">
           <Button
             onClick={() => setIsCreateOpen(true)}
             className="flex items-center gap-1"
@@ -405,9 +398,7 @@ export default function RecruiterDashboard() {
             <span className="max-md:text-[12px]"> Create Position</span>
           </Button>
         </div>
-      </header>
 
-      <main className="max-w-7xl mx-auto px-6 py-8 space-y-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Surface className="p-6">
             <div className="flex items-center justify-between mb-3">

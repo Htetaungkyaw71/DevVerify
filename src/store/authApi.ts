@@ -62,7 +62,7 @@ export const authApi = createApi({
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         const { data } = await queryFulfilled;
         dispatch(setCredentials(data));
-        sessionStorage.setItem("devverify:has_session", "true");
+        localStorage.setItem("devverify:has_session", "true");
       },
     }),
     register: builder.mutation<AuthPayload, RegisterRequest>({
@@ -75,7 +75,7 @@ export const authApi = createApi({
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         const { data } = await queryFulfilled;
         dispatch(setCredentials(data));
-        sessionStorage.setItem("devverify:has_session", "true");
+        localStorage.setItem("devverify:has_session", "true");
       },
     }),
     sendRegisterOtp: builder.mutation<

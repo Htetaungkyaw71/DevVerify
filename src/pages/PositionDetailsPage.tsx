@@ -24,8 +24,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import BrandLogo from "@/components/BrandLogo";
-import AppSettingsControls from "@/components/AppSettingsControls";
+import MainNavbar from "@/components/MainNavbar";
 import { useAppSettings } from "@/contexts/AppSettingsContext";
 import { useToast } from "@/hooks/use-toast";
 import { useGetChallengesQuery } from "@/store/challengesApi";
@@ -255,17 +254,7 @@ export default function PositionDetailsPage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <header className="h-14 border-b border-border/50 px-6 flex items-center justify-between bg-background/80 backdrop-blur-xl sticky top-0 z-50">
-        <Link to="/" className="inline-flex items-center">
-          <BrandLogo compact textClassName="text-foreground" />
-        </Link>
-        <div className="flex items-center gap-3">
-          <AppSettingsControls />
-          <span className="text-xs font-mono text-muted-foreground">
-            POSITION DETAILS
-          </span>
-        </div>
-      </header>
+      <MainNavbar />
 
       <main className="max-w-7xl mx-auto px-6 py-8 space-y-8">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">

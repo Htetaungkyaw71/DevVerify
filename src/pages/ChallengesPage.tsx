@@ -1,4 +1,3 @@
-import { Link } from "react-router-dom";
 import { Search, ChevronLeft, ChevronRight } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -7,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useGetChallengesQuery, useGetTagsQuery } from "@/store/challengesApi";
-import BrandLogo from "@/components/BrandLogo";
+import MainNavbar from "@/components/MainNavbar";
 
 export default function ChallengesPage() {
   const navigate = useNavigate();
@@ -58,14 +57,7 @@ export default function ChallengesPage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <header className="h-14 border-b border-border/50 px-6 flex items-center justify-between bg-background/80 backdrop-blur-xl sticky top-0 z-50">
-        <Link to="/" className="inline-flex items-center">
-          <BrandLogo compact textClassName="text-foreground" />
-        </Link>
-        <span className="text-xs font-mono text-muted-foreground">
-          CHALLENGES
-        </span>
-      </header>
+      <MainNavbar />
 
       <main className="max-w-7xl mx-auto px-6 py-8 space-y-6">
         <Surface className="p-4 sm:p-6">

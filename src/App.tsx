@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { useEffect } from "react";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
@@ -30,11 +30,12 @@ const queryClient = new QueryClient();
 function AuthBootstrap() {
   const dispatch = useAppDispatch();
 
+  // ...existing code...
   useEffect(() => {
     let cancelled = false;
 
     const bootstrap = async () => {
-      const hasSessionFlag = sessionStorage.getItem("devverify:has_session");
+      const hasSessionFlag = localStorage.getItem("devverify:has_session");
 
       if (!hasSessionFlag) {
         if (!cancelled) {
@@ -51,7 +52,7 @@ function AuthBootstrap() {
       } catch (err: any) {
         if (!cancelled) {
           dispatch(setCredentials({ user: null }));
-          sessionStorage.removeItem("devverify:has_session");
+          localStorage.removeItem("devverify:has_session");
         }
       } finally {
         if (!cancelled) {
@@ -66,6 +67,7 @@ function AuthBootstrap() {
       cancelled = true;
     };
   }, [dispatch]);
+  // ...existing code...
 
   return null;
 }
@@ -104,8 +106,26 @@ const App = () => (
             <Route path="/report" element={<AIReportPage />} />
             <Route path="/privacy" element={<PrivacyPage />} />
             <Route path="/privacy-terms" element={<PrivacyTermsPage />} />
-            <Route path="/auth" element={<AuthPage />} />
-            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route
+              path="/auth"
+              element={
+                localStorage.getItem("devverify:has_session") ? (
+                  <Navigate to="/" replace />
+                ) : (
+                  <AuthPage />
+                )
+              }
+            />
+            <Route
+              path="/forgot-password"
+              element={
+                localStorage.getItem("devverify:has_session") ? (
+                  <Navigate to="/" replace />
+                ) : (
+                  <ForgotPasswordPage />
+                )
+              }
+            />
             <Route path="/oauth-success" element={<OAuthSuccess />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

@@ -2,26 +2,16 @@ import {
   Cpu,
   UserCheck,
   BarChart3,
-  ArrowRight,
   Terminal,
   ChevronRight,
-  ChevronDown,
-  LogOut,
   ShieldCheck,
 } from "lucide-react";
 import { motion } from "framer-motion";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Surface } from "@/components/ui/Surface";
-import { useEffect, useRef, useState } from "react";
-import api from "@/lib/api";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { logout } from "@/store/authSlice";
-import { authApi } from "@/store/authApi";
-import { challengesApi } from "@/store/challengesApi";
-import { positionsApi } from "@/store/positionsApi";
-import { submissionsApi } from "@/store/submissionsApi";
+import { useState } from "react";
 import BrandLogo from "@/components/BrandLogo";
-import AppSettingsControls from "@/components/AppSettingsControls";
+import MainNavbar from "@/components/MainNavbar";
 import { useAppSettings } from "@/contexts/AppSettingsContext";
 
 const fadeUp = {
@@ -70,178 +60,10 @@ const stats = [
 
 export default function LandingPage() {
   const { t } = useAppSettings();
-  const dispatch = useAppDispatch();
-  const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [showUserMenu, setShowUserMenu] = useState(false);
-  const userMenuRef = useRef<HTMLDivElement | null>(null);
-  const navigate = useNavigate();
-  const authUser = useAppSelector((state) => state.auth.user);
-  const authInitialized = useAppSelector((state) => state.auth.initialized);
-
-  useEffect(() => {
-    if (!authInitialized) {
-      setLoading(true);
-      return;
-    }
-
-    if (authUser) {
-      setUser(authUser);
-      setLoading(false);
-      return;
-    }
-
-    setUser(null);
-    setLoading(false);
-  }, [authInitialized, authUser]);
-
-  useEffect(() => {
-    if (!showUserMenu) {
-      return;
-    }
-
-    const onMouseDown = (event: MouseEvent) => {
-      const target = event.target as Node;
-      if (userMenuRef.current && !userMenuRef.current.contains(target)) {
-        setShowUserMenu(false);
-      }
-    };
-
-    window.addEventListener("mousedown", onMouseDown);
-    return () => {
-      window.removeEventListener("mousedown", onMouseDown);
-    };
-  }, [showUserMenu]);
-
-  const handleLogout = async () => {
-    try {
-      await api.post("/logout");
-    } catch {}
-
-    dispatch(logout());
-    dispatch(authApi.util.resetApiState());
-    dispatch(challengesApi.util.resetApiState());
-    dispatch(positionsApi.util.resetApiState());
-    dispatch(submissionsApi.util.resetApiState());
-
-    sessionStorage.removeItem("devverify:has_session");
-
-    Object.keys(localStorage).forEach((key) => {
-      if (key.startsWith("devverify:draft:")) {
-        localStorage.removeItem(key);
-      }
-    });
-
-    setUser(null);
-    setShowUserMenu(false);
-    navigate("/");
-  };
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <nav className="sticky top-0 z-50 border-b border-border/50 bg-background/80 backdrop-blur-xl">
-        <div className="max-w-7xl mx-auto px-6 h-14 flex items-center justify-between">
-          <Link to="/" className="inline-flex items-center">
-            <BrandLogo compact textClassName="text-foreground" />
-          </Link>
-          <div className="hidden md:flex items-center gap-8 text-sm text-muted-foreground">
-            {user && (
-              <Link
-                to="/dashboard"
-                className="hover:text-foreground transition-colors"
-              >
-                {t("dashboard")}
-              </Link>
-            )}
-
-            <Link
-              to="/challenges"
-              className="hover:text-foreground transition-colors"
-            >
-              {t("challenges")}
-            </Link>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <AppSettingsControls />
-            {loading ? null : user ? (
-              <div className="relative" ref={userMenuRef}>
-                <button
-                  type="button"
-                  onClick={() => setShowUserMenu((prev) => !prev)}
-                  className="flex items-center gap-2 rounded-md px-2 py-1.5 ring-1 ring-border bg-secondary/50 hover:bg-accent transition-colors"
-                >
-                  {user?.avatar ? (
-                    <img
-                      src={user.avatar}
-                      width={32}
-                      height={32}
-                      className="rounded-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-8 h-8 rounded-full bg-primary/15 text-primary text-xs font-semibold flex items-center justify-center">
-                      {String(user?.username || "U")
-                        .slice(0, 1)
-                        .toUpperCase()}
-                    </div>
-                  )}
-                  <div className="text-left leading-tight">
-                    <p className="text-sm text-foreground font-medium line-clamp-1 max-w-[120px]">
-                      {user?.username}
-                    </p>
-                  </div>
-                  <ChevronDown size={14} className="text-muted-foreground" />
-                </button>
-
-                {showUserMenu && (
-                  <div className="absolute right-0 mt-2 w-52 rounded-md border border-border bg-background/95 backdrop-blur p-1.5 shadow-lg z-50">
-                    <div className="px-2 py-1.5 border-b border-border/60 mb-1">
-                      <p className="text-sm font-medium text-foreground truncate">
-                        {user?.username}
-                      </p>
-                      <p className="text-xs text-muted-foreground truncate">
-                        {user?.email || t("signin")}
-                      </p>
-                    </div>
-                    <div className="md:hidden px-1 pb-1 border-b border-border/60 mb-1 space-y-0.5">
-                      <Link
-                        to="/dashboard"
-                        onClick={() => setShowUserMenu(false)}
-                        className="w-full text-left px-2 py-2 text-sm rounded hover:bg-accent text-foreground block"
-                      >
-                        {t("dashboard")}
-                      </Link>
-                      <Link
-                        to="/challenges"
-                        onClick={() => setShowUserMenu(false)}
-                        className="w-full text-left px-2 py-2 text-sm rounded hover:bg-accent text-foreground block"
-                      >
-                        {t("challenges")}
-                      </Link>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={handleLogout}
-                      className="w-full text-left px-3 py-2 text-sm rounded hover:bg-accent text-foreground inline-flex items-center gap-2"
-                    >
-                      <LogOut size={14} />
-                      {t("logout")}
-                    </button>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <Link
-                to="/auth"
-                className="flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium bg-primary text-primary-foreground"
-              >
-                {t("signin")}
-                <ArrowRight size={16} />
-              </Link>
-            )}
-          </div>
-        </div>
-      </nav>
+      <MainNavbar />
 
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
