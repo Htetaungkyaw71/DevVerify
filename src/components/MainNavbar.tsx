@@ -90,12 +90,12 @@ export default function MainNavbar() {
 
   return (
     <nav className="sticky top-0 z-50 border-b border-border/50 bg-background/80 backdrop-blur-xl">
-      <div className="max-w-7xl mx-auto px-6 h-14 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-6 h-14 flex items-center ">
         <Link to="/" className="inline-flex items-center">
           <BrandLogo compact textClassName="text-foreground" />
         </Link>
 
-        <div className="hidden md:flex items-center gap-8 text-sm text-muted-foreground">
+        <div className="hidden md:flex absolute left-1/2 -translate-x-1/2 items-center gap-8 text-sm text-muted-foreground">
           {showAuthedShell ? (
             <NavLink
               to="/dashboard"
@@ -134,7 +134,7 @@ export default function MainNavbar() {
           </NavLink>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-1 items-center justify-end gap-3">
           <AppSettingsControls />
 
           {!authInitialized && hasSessionHint ? (

@@ -1,5 +1,7 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Surface } from "@/components/ui/Surface";
+import { Skeleton } from "@/components/ui/skeleton";
 import MainNavbar from "@/components/MainNavbar";
 
 const recruiterSteps = [
@@ -17,6 +19,31 @@ const candidateSteps = [
   "Submit before time ends (or auto-submit on timeout).",
   "Return to invite page and continue remaining challenges.",
 ];
+
+function LazyGuideImage({
+  src,
+  alt,
+}: {
+  src: string;
+  alt: string;
+}) {
+  const [loaded, setLoaded] = useState(false);
+
+  return (
+    <div className="relative">
+      {!loaded && <Skeleton className="h-56 w-full rounded-md" />}
+      <img
+        src={src}
+        alt={alt}
+        className={`w-full rounded-md border border-border/60 transition-opacity duration-300 ${
+          loaded ? "opacity-100" : "opacity-0 absolute inset-0"
+        }`}
+        loading="lazy"
+        onLoad={() => setLoaded(true)}
+      />
+    </div>
+  );
+}
 
 export default function AboutPage() {
   return (
@@ -42,11 +69,9 @@ export default function AboutPage() {
 
         <Surface className="p-6 space-y-4">
           <h2 className="text-xl font-semibold">How the platform works</h2>
-          <img
+          <LazyGuideImage
             src="/guides/platform-overview.svg"
             alt="DevVerify platform overview diagram"
-            className="w-full rounded-md border border-border/60"
-            loading="lazy"
           />
           <p className="text-sm text-muted-foreground">
             Recruiters manage assessments and candidates complete coding tasks.
@@ -58,11 +83,9 @@ export default function AboutPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <Surface className="p-6 space-y-4">
             <h2 className="text-xl font-semibold">Recruiter User Guide</h2>
-            <img
+            <LazyGuideImage
               src="/guides/recruiter-flow.svg"
               alt="Recruiter step by step workflow"
-              className="w-full rounded-md border border-border/60"
-              loading="lazy"
             />
             <ol className="list-decimal pl-5 space-y-2 text-sm text-muted-foreground">
               {recruiterSteps.map((step) => (
@@ -73,11 +96,9 @@ export default function AboutPage() {
 
           <Surface className="p-6 space-y-4">
             <h2 className="text-xl font-semibold">Candidate User Guide</h2>
-            <img
+            <LazyGuideImage
               src="/guides/candidate-flow.svg"
               alt="Candidate step by step workflow"
-              className="w-full rounded-md border border-border/60"
-              loading="lazy"
             />
             <ol className="list-decimal pl-5 space-y-2 text-sm text-muted-foreground">
               {candidateSteps.map((step) => (
